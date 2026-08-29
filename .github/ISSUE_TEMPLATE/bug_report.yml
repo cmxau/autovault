@@ -1,0 +1,49 @@
+name: Bug report
+description: Something in AutoVault isn't working as expected
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to '...'
+        2. Tap on '...'
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: false
+  - type: input
+    id: device
+    attributes:
+      label: Device & browser
+      placeholder: e.g. iPhone 15, Safari 17 / Pixel 8, Chrome 128
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: AutoVault version
+      description: Found in Settings → About → Version
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Drag and drop images here if you have them.
+    validations:
+      required: false
