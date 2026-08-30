@@ -1,20 +1,43 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const KEY = "autovault-profile-name";
 
-export function getProfileName(): string {
+function readName(): string {
   if (typeof window === "undefined") return "";
-  return window.localStorage.getItem(KEY) ?? "";
+  try {
+    return window.localStorage.getItem(KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+let state = readName();
+const listeners = new Set<() => void>();
+
+function setState(next: string) {
+  state = next;
+  if (typeof window !== "undefined") window.localStorage.setItem(KEY, state);
+  for (const listener of listeners) listener();
+}
+
+export const profileStore = {
+  getState: () => state,
+  getServerState: () => "",
+  subscribe(listener: () => void) {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  },
+};
+
+/** Reads the profile name reactively; updates immediately across every mounted consumer. */
+export function useProfileName() {
+  return useSyncExternalStore(
+    profileStore.subscribe,
+    profileStore.getState,
+    profileStore.getServerState,
+  );
 }
 
 export function setProfileName(name: string) {
-  window.localStorage.setItem(KEY, name);
-}
-
-export function useProfileName() {
-  const [name, setName] = useState("");
-
-  useEffect(() => setName(getProfileName()), []);
-
-  return name;
+  setState(name);
 }

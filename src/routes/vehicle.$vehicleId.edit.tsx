@@ -1,12 +1,15 @@
 import { useRef, useState } from "react";
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import { ImagePlus } from "lucide-react";
+import { ImagePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { FormField, FormGroup, TextInput } from "@/components/autovault/form";
-import { PrimaryButton } from "@/components/autovault/buttons";
+import { PrimaryButton, SecondaryButton } from "@/components/autovault/buttons";
+import { BottomSheet } from "@/components/autovault/bottom-sheet";
+import { Row, RowGroup } from "@/components/autovault/row";
 import { garageStore } from "@/lib/store";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
+import { useVehicles } from "@/hooks/use-garage-data";
 import { displayToKm, distanceUnitLabel, kmToDisplay } from "@/lib/units";
 
 export const Route = createFileRoute("/vehicle/$vehicleId/edit")({
@@ -26,7 +29,9 @@ function EditVehiclePage() {
   const { system } = useUnitPrefs();
   const distanceLabel = distanceUnitLabel(system);
   const navigate = useNavigate();
+  const vehicles = useVehicles();
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const [form, setForm] = useState({
     nickname: vehicle.nickname,
@@ -160,6 +165,45 @@ function EditVehiclePage() {
           Save Changes
         </PrimaryButton>
       </div>
+
+      <section className="mt-8">
+        <SectionHeader title="Danger Zone" />
+        <RowGroup>
+          <Row
+            icon={Trash2}
+            title="Remove vehicle"
+            detail="Also removes its fuel, service and document history"
+            onClick={() => setConfirmDelete(true)}
+            className="text-urgent"
+          />
+        </RowGroup>
+      </section>
+
+      <BottomSheet
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        title="Remove this vehicle?"
+        description={`${vehicle.nickname} and its fuel, service, expense and document history will be deleted from this device.`}
+      >
+        <div className="space-y-3">
+          <PrimaryButton
+            className="bg-urgent hover:bg-urgent/90"
+            onClick={() => {
+              if (vehicles.length <= 1) {
+                toast.error("Add another vehicle before removing this one");
+                setConfirmDelete(false);
+                return;
+              }
+              garageStore.deleteVehicle(vehicle.id);
+              toast.success("Vehicle removed");
+              void navigate({ to: "/" });
+            }}
+          >
+            Remove Vehicle
+          </PrimaryButton>
+          <SecondaryButton onClick={() => setConfirmDelete(false)}>Cancel</SecondaryButton>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

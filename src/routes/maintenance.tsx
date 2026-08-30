@@ -9,6 +9,7 @@ import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import { formatDistance } from "@/lib/units";
 import { computeHealth, computeMaintenanceItems, computeServiceStatus } from "@/lib/analytics";
+import { VehicleNotesSection } from "@/components/autovault/vehicle-notes";
 
 export const Route = createFileRoute("/maintenance")({
   head: () => ({
@@ -90,6 +91,8 @@ function MaintenancePage() {
           ))}
         </RowGroup>
       </section>
+
+      <VehicleNotesSection vehicle={vehicle} />
 
       <section className="mt-8">
         <SectionHeader title="Vehicle health" />

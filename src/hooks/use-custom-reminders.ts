@@ -46,5 +46,13 @@ export function useCustomReminders(vehicleId: string) {
     });
   }, []);
 
-  return { items: all.filter((r) => r.vehicleId === vehicleId), add, remove };
+  const update = useCallback((id: string, label: string, detail: string) => {
+    setAll((prev) => {
+      const next = prev.map((r) => (r.id === id ? { ...r, label, detail } : r));
+      write(next);
+      return next;
+    });
+  }, []);
+
+  return { items: all.filter((r) => r.vehicleId === vehicleId), add, remove, update };
 }

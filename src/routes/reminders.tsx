@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Bell, Check, Trash2 } from "lucide-react";
+import { Bell, Check, PencilLine, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { StatusDot } from "@/components/autovault/status-indicator";
@@ -47,10 +47,12 @@ function RemindersPage() {
     items: custom,
     add: addCustom,
     remove: removeCustom,
+    update: updateCustom,
   } = useCustomReminders(vehicle?.id ?? "");
   const { serviceReminders, expiryReminders } = useNotificationPrefs();
   const { system } = useUnitPrefs();
   const [addOpen, setAddOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [label, setLabel] = useState("");
   const [detail, setDetail] = useState("");
 
@@ -127,17 +129,32 @@ function RemindersPage() {
                     <p className="tnum mt-1 text-[13px] text-muted-foreground">{reminder.detail}</p>
                   )}
                 </div>
-                <button
-                  type="button"
-                  aria-label="Delete reminder"
-                  onClick={() => {
-                    removeCustom(reminder.id);
-                    toast.success("Reminder removed");
-                  }}
-                  className="focus-ring text-muted-foreground/70 transition-colors hover:text-urgent"
-                >
-                  <Trash2 className="size-[17px]" strokeWidth={1.6} />
-                </button>
+                <div className="flex shrink-0 items-center gap-3">
+                  <button
+                    type="button"
+                    aria-label="Edit reminder"
+                    onClick={() => {
+                      setEditingId(reminder.id);
+                      setLabel(reminder.label);
+                      setDetail(reminder.detail);
+                      setAddOpen(true);
+                    }}
+                    className="focus-ring text-muted-foreground/70 transition-colors hover:text-primary"
+                  >
+                    <PencilLine className="size-[17px]" strokeWidth={1.6} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Delete reminder"
+                    onClick={() => {
+                      removeCustom(reminder.id);
+                      toast.success("Reminder removed");
+                    }}
+                    className="focus-ring text-muted-foreground/70 transition-colors hover:text-urgent"
+                  >
+                    <Trash2 className="size-[17px]" strokeWidth={1.6} />
+                  </button>
+                </div>
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2 border-t border-hairline pt-4">
@@ -169,7 +186,16 @@ function RemindersPage() {
 
       <section className="mt-8">
         <SectionHeader title="Add" />
-        <SecondaryButton onClick={() => setAddOpen(true)}>New Reminder</SecondaryButton>
+        <SecondaryButton
+          onClick={() => {
+            setEditingId(null);
+            setLabel("");
+            setDetail("");
+            setAddOpen(true);
+          }}
+        >
+          New Reminder
+        </SecondaryButton>
         <p className="mt-3 px-1 text-[12px] leading-relaxed text-muted-foreground">
           Service and document reminders above are generated from your records. Custom reminders are
           a plain note you set the lead time on.
@@ -178,8 +204,11 @@ function RemindersPage() {
 
       <BottomSheet
         open={addOpen}
-        onClose={() => setAddOpen(false)}
-        title="New Reminder"
+        onClose={() => {
+          setAddOpen(false);
+          setEditingId(null);
+        }}
+        title={editingId ? "Edit Reminder" : "New Reminder"}
         description="A custom, freeform reminder for this vehicle"
       >
         <div className="space-y-4">
@@ -197,14 +226,20 @@ function RemindersPage() {
                 toast.error("Enter a title");
                 return;
               }
-              addCustom(label.trim(), detail.trim());
+              if (editingId) {
+                updateCustom(editingId, label.trim(), detail.trim());
+                toast.success("Reminder updated");
+              } else {
+                addCustom(label.trim(), detail.trim());
+                toast.success("Reminder added");
+              }
               setLabel("");
               setDetail("");
+              setEditingId(null);
               setAddOpen(false);
-              toast.success("Reminder added");
             }}
           >
-            Add Reminder
+            {editingId ? "Save Changes" : "Add Reminder"}
           </PrimaryButton>
         </div>
       </BottomSheet>

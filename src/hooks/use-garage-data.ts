@@ -24,3 +24,11 @@ export function useDocs() {
     () => garageStore.getServerState().docs,
   );
 }
+
+export function useNotes() {
+  return useSyncExternalStore(
+    garageStore.subscribe,
+    () => garageStore.getState().notes,
+    () => garageStore.getServerState().notes,
+  );
+}

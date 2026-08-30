@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { Gauge, PencilLine, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { SegmentedControl } from "@/components/autovault/segmented-control";
 import { Row, RowGroup } from "@/components/autovault/row";
-import { IconButton, PrimaryButton, SecondaryButton } from "@/components/autovault/buttons";
+import { PrimaryButton, SecondaryButton } from "@/components/autovault/buttons";
 import { ProgressBar } from "@/components/autovault/metric";
 import { BottomSheet } from "@/components/autovault/bottom-sheet";
 import { MileageChart } from "@/components/insights/mileage-chart";
 import { TimelineEventRow } from "@/components/timeline/timeline-event";
+import { VehicleNotesSection } from "@/components/autovault/vehicle-notes";
 import { maskReg } from "@/lib/format";
 import {
   formatCostPerDistance,
@@ -90,14 +91,14 @@ function VehicleDetailPage() {
         title={vehicle.nickname}
         className="mb-5"
         action={
-          <IconButton
-            icon={PencilLine}
-            label="Edit vehicle"
-            tone="plain"
-            onClick={() =>
-              void navigate({ to: "/vehicle/$vehicleId/edit", params: { vehicleId: vehicle.id } })
-            }
-          />
+          <Link
+            to="/vehicle/$vehicleId/edit"
+            params={{ vehicleId: vehicle.id }}
+            aria-label="Edit vehicle"
+            className="focus-ring grid size-11 place-items-center rounded-full text-foreground transition-colors hover:bg-accent"
+          >
+            <PencilLine className="size-[19px]" strokeWidth={1.75} />
+          </Link>
         }
       />
 
@@ -223,6 +224,7 @@ function VehicleDetailPage() {
               <Row key={item.id} title={item.label} detail={item.detail} status={item.status} />
             ))}
           </RowGroup>
+          <VehicleNotesSection vehicle={vehicle} />
         </div>
       )}
 

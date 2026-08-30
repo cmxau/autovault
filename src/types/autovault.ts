@@ -55,6 +55,16 @@ export type Doc = {
   hasFile: boolean;
 };
 
+export type VehicleNote = {
+  id: string;
+  vehicleId: string;
+  text: string;
+  odometer?: number;
+  createdAt: string;
+  resolved: boolean;
+  resolvedAt?: string;
+};
+
 export type MaintenanceItem = {
   id: string;
   label: string;

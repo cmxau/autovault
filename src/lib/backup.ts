@@ -1,5 +1,5 @@
 import { garageStore } from "@/lib/store";
-import type { Vehicle, TimelineEntry, Doc } from "@/types/autovault";
+import type { Vehicle, TimelineEntry, Doc, VehicleNote } from "@/types/autovault";
 import {
   decryptWithPassphrase,
   encryptWithPassphrase,
@@ -33,11 +33,12 @@ export async function exportAutoVaultBackup({
   encrypt: boolean;
   passphrase?: string;
 }) {
-  const { vehicles, timeline, docs } = garageStore.getState();
+  const { vehicles, timeline, docs, notes } = garageStore.getState();
   const payload = {
     exportedAt: new Date().toISOString(),
     vehicles,
     timeline,
+    notes,
     ...(includeDocuments && { docs }),
   };
   const filename = `garage-${todayStamp()}.autovault`;
@@ -101,7 +102,12 @@ export async function restoreBackupFile(
 }
 
 function applyBackupPayload(parsed: unknown): RestoredBackup {
-  const p = parsed as { vehicles?: unknown[]; timeline?: unknown[]; docs?: unknown[] };
+  const p = parsed as {
+    vehicles?: unknown[];
+    timeline?: unknown[];
+    docs?: unknown[];
+    notes?: unknown[];
+  };
   if (!Array.isArray(p.vehicles) || !Array.isArray(p.timeline)) {
     throw new Error("Not a valid .autovault file");
   }
@@ -109,6 +115,7 @@ function applyBackupPayload(parsed: unknown): RestoredBackup {
     vehicles: p.vehicles as Vehicle[],
     timeline: p.timeline as TimelineEntry[],
     ...(Array.isArray(p.docs) && { docs: p.docs as Doc[] }),
+    ...(Array.isArray(p.notes) && { notes: p.notes as VehicleNote[] }),
   });
   return { vehicleCount: p.vehicles.length, entryCount: p.timeline.length };
 }
