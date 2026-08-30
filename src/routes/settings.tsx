@@ -107,7 +107,7 @@ function SettingsPage() {
               icon={Car}
               title="Manage vehicles"
               detail={`${vehicles.length} vehicles`}
-              to="/vehicle/new"
+              to="/vehicle"
             />
             <Row icon={BriefcaseBusiness} title="Glovebox" to="/glovebox" />
             <Row icon={Wrench} title="Maintenance" to="/maintenance" />

@@ -53,6 +53,8 @@ function AddVehiclePage() {
     year: "",
     registration: "",
     odometer: "",
+    nextServiceKm: "",
+    nextServiceDate: "",
     nickname: "",
   });
 
@@ -168,17 +170,45 @@ function AddVehiclePage() {
           )}
 
           {step === 3 && (
-            <FormGroup>
-              <FormField label="Odometer" hint="Reading right now">
-                <TextInput
-                  value={form.odometer}
-                  onChange={set("odometer")}
-                  numeric
-                  suffix={distanceLabel}
-                  placeholder="24820"
-                />
-              </FormField>
-            </FormGroup>
+            <>
+              <FormGroup>
+                <FormField label="Odometer" hint="Reading right now">
+                  <TextInput
+                    value={form.odometer}
+                    onChange={set("odometer")}
+                    numeric
+                    suffix={distanceLabel}
+                    placeholder="24820"
+                  />
+                </FormField>
+              </FormGroup>
+
+              <div className="mt-7">
+                <SectionHeader title="Next Service" />
+                <FormGroup>
+                  <FormField label="At" hint="Leave blank for +5,000 from odometer">
+                    <TextInput
+                      value={form.nextServiceKm}
+                      onChange={set("nextServiceKm")}
+                      numeric
+                      suffix={distanceLabel}
+                      placeholder="-"
+                    />
+                  </FormField>
+                  <FormField label="Or by date" hint="Leave blank for 6 months from now">
+                    <TextInput
+                      value={form.nextServiceDate}
+                      onChange={set("nextServiceDate")}
+                      type="date"
+                    />
+                  </FormField>
+                </FormGroup>
+                <p className="mt-2.5 px-1 text-[12px] leading-relaxed text-muted-foreground">
+                  Service reminds you at whichever comes first, distance or date. Both can be
+                  changed later from the vehicle's edit screen.
+                </p>
+              </div>
+            </>
           )}
 
           {step === 4 && (
@@ -239,6 +269,14 @@ function AddVehiclePage() {
             const tint = KIND_TINTS[kind] ?? KIND_TINTS["car"]!;
             const nickname = form.nickname.trim() || `${form.make} ${form.model}`.trim();
 
+            const nextServiceKm = form.nextServiceKm.trim()
+              ? Math.round(displayToKm(Number(form.nextServiceKm), system))
+              : odometer + 5000;
+            const sixMonthsFromNow = new Date();
+            sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+            const nextServiceDate =
+              form.nextServiceDate.trim() || sixMonthsFromNow.toISOString().slice(0, 10);
+
             const vehicle: Vehicle = {
               id: crypto.randomUUID(),
               kind: kind as VehicleKind,
@@ -257,8 +295,8 @@ function AddVehiclePage() {
               image: photo ?? vehiclePlaceholderImage(tint),
               tint,
               health: 100,
-              nextServiceKm: odometer + 5000,
-              nextServiceDate: "",
+              nextServiceKm,
+              nextServiceDate,
               monthKm: 0,
               monthFuelCost: 0,
               monthTotalCost: 0,

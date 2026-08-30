@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { Gauge, PencilLine, Trash2 } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Gauge, PencilLine, SearchX, Trash2 } from "lucide-react";
+import { ErrorPage } from "@/components/autovault/error-page";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { SegmentedControl } from "@/components/autovault/segmented-control";
@@ -20,7 +21,6 @@ import {
   formatVolume,
 } from "@/lib/units";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
-import type { Vehicle } from "@/types/autovault";
 import { garageStore } from "@/lib/store";
 import { useDocs, useTimeline, useVehicles } from "@/hooks/use-garage-data";
 import {
@@ -36,39 +36,33 @@ import {
 type Tab = "overview" | "maintenance" | "fuel" | "expenses" | "glovebox";
 
 export const Route = createFileRoute("/vehicle/$vehicleId")({
-  head: ({ loaderData }: { loaderData?: { vehicle: Vehicle } | undefined }) => {
-    if (!loaderData) {
-      return { meta: [{ title: "Vehicle · AutoVault" }, { name: "robots", content: "noindex" }] };
-    }
-    const title = `${loaderData.vehicle.nickname} · AutoVault`;
-    const description = `${loaderData.vehicle.year} ${loaderData.vehicle.make} ${loaderData.vehicle.model}: odometer, mileage, maintenance, fuel history and documents.`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-      ],
-    };
-  },
-  loader: ({ params }) => {
-    const vehicle = garageStore.getState().vehicles.find((v) => v.id === params.vehicleId);
-    if (!vehicle) throw notFound();
-    return { vehicle };
-  },
+  head: () => ({
+    meta: [{ title: "Vehicle · AutoVault" }, { name: "robots", content: "noindex" }],
+  }),
   component: VehicleDetailPage,
 });
 
 function VehicleDetailPage() {
-  const { vehicle: initialVehicle } = Route.useLoaderData();
+  const { vehicleId } = Route.useParams();
   const vehicles = useVehicles();
-  const vehicle = vehicles.find((v) => v.id === initialVehicle.id) ?? initialVehicle;
+  const vehicle = vehicles.find((v) => v.id === vehicleId);
   const [tab, setTab] = useState<Tab>("overview");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const timeline = useTimeline();
   const docs = useDocs();
   const navigate = useNavigate();
   const { system, currency } = useUnitPrefs();
+
+  if (!vehicle) {
+    return (
+      <ErrorPage
+        code={404}
+        icon={SearchX}
+        title="Vehicle not found"
+        description="This vehicle doesn't exist on this device, or its records were removed."
+      />
+    );
+  }
 
   const now = new Date();
   const items = computeMaintenanceItems(vehicle, docs, system);
@@ -295,11 +289,6 @@ function VehicleDetailPage() {
           <PrimaryButton
             className="bg-urgent hover:bg-urgent/90"
             onClick={() => {
-              if (vehicles.length <= 1) {
-                toast.error("Add another vehicle before removing this one");
-                setConfirmDelete(false);
-                return;
-              }
               garageStore.deleteVehicle(vehicle.id);
               toast.success("Vehicle removed");
               void navigate({ to: "/" });

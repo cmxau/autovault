@@ -1,49 +1,51 @@
 import { useRef, useState } from "react";
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import { ImagePlus, Trash2 } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ImagePlus, SearchX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { FormField, FormGroup, TextInput } from "@/components/autovault/form";
 import { PrimaryButton, SecondaryButton } from "@/components/autovault/buttons";
 import { BottomSheet } from "@/components/autovault/bottom-sheet";
+import { ErrorPage } from "@/components/autovault/error-page";
 import { Row, RowGroup } from "@/components/autovault/row";
 import { garageStore } from "@/lib/store";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import { useVehicles } from "@/hooks/use-garage-data";
-import { displayToKm, distanceUnitLabel, kmToDisplay } from "@/lib/units";
+import { displayToKm, distanceUnitLabel, kmToDisplay, type DistanceSystem } from "@/lib/units";
+import type { Vehicle } from "@/types/autovault";
 
-export const Route = createFileRoute("/vehicle/$vehicleId/edit")({
+export const Route = createFileRoute("/vehicle_/$vehicleId/edit")({
   head: () => ({
     meta: [{ title: "Edit Vehicle · AutoVault" }, { name: "robots", content: "noindex" }],
   }),
-  loader: ({ params }) => {
-    const vehicle = garageStore.getState().vehicles.find((v) => v.id === params.vehicleId);
-    if (!vehicle) throw notFound();
-    return { vehicle };
-  },
   component: EditVehiclePage,
 });
 
+function formFromVehicle(vehicle: Vehicle | undefined, system: DistanceSystem) {
+  return {
+    nickname: vehicle?.nickname ?? "",
+    make: vehicle?.make ?? "",
+    model: vehicle?.model ?? "",
+    variant: vehicle?.variant ?? "",
+    year: vehicle ? String(vehicle.year) : "",
+    registration: vehicle?.registration ?? "",
+    odometer: vehicle ? String(Math.round(kmToDisplay(vehicle.odometer, system))) : "",
+    nextServiceKm: vehicle ? String(Math.round(kmToDisplay(vehicle.nextServiceKm, system))) : "",
+    nextServiceDate: vehicle?.nextServiceDate ?? "",
+  };
+}
+
 function EditVehiclePage() {
-  const { vehicle } = Route.useLoaderData();
+  const { vehicleId } = Route.useParams();
+  const vehicles = useVehicles();
+  const vehicle = vehicles.find((v) => v.id === vehicleId);
   const { system } = useUnitPrefs();
   const distanceLabel = distanceUnitLabel(system);
   const navigate = useNavigate();
-  const vehicles = useVehicles();
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const [form, setForm] = useState({
-    nickname: vehicle.nickname,
-    make: vehicle.make,
-    model: vehicle.model,
-    variant: vehicle.variant,
-    year: String(vehicle.year),
-    registration: vehicle.registration,
-    odometer: String(Math.round(kmToDisplay(vehicle.odometer, system))),
-    nextServiceKm: String(Math.round(kmToDisplay(vehicle.nextServiceKm, system))),
-    nextServiceDate: vehicle.nextServiceDate,
-  });
+  const [form, setForm] = useState(() => formFromVehicle(vehicle, system));
   const [photo, setPhoto] = useState<string | null>(null);
 
   const set = (key: keyof typeof form) => (value: string) =>
@@ -58,6 +60,17 @@ function EditVehiclePage() {
     const reader = new FileReader();
     reader.onload = () => setPhoto(reader.result as string);
     reader.readAsDataURL(file);
+  }
+
+  if (!vehicle) {
+    return (
+      <ErrorPage
+        code={404}
+        icon={SearchX}
+        title="Vehicle not found"
+        description="This vehicle doesn't exist on this device, or its records were removed."
+      />
+    );
   }
 
   return (
@@ -189,11 +202,6 @@ function EditVehiclePage() {
           <PrimaryButton
             className="bg-urgent hover:bg-urgent/90"
             onClick={() => {
-              if (vehicles.length <= 1) {
-                toast.error("Add another vehicle before removing this one");
-                setConfirmDelete(false);
-                return;
-              }
               garageStore.deleteVehicle(vehicle.id);
               toast.success("Vehicle removed");
               void navigate({ to: "/" });
