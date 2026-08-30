@@ -57,7 +57,9 @@ export function Row({
           </span>
         )}
       </span>
-      {trailing && <span className="tnum shrink-0 text-[13.5px] text-muted-foreground">{trailing}</span>}
+      {trailing && (
+        <span className="tnum shrink-0 text-[13.5px] text-muted-foreground">{trailing}</span>
+      )}
       {interactive && (
         <ChevronRight className="size-4 shrink-0 text-muted-foreground/60" strokeWidth={2} />
       )}

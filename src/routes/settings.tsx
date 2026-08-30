@@ -13,6 +13,7 @@ import {
   Download,
   Bug,
   Lightbulb,
+  Github,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
@@ -241,9 +242,21 @@ function SettingsPage() {
               onClick={() => openGithubIssue("feature_request.yml")}
             />
             <Row title="Terms" onClick={() => setTermsOpen(true)} />
-            <Row title="Version" trailing="1.0.0 (24)" />
           </RowGroup>
         </section>
+
+        <a
+          href="https://github.com/cmxau"
+          target="_blank"
+          rel="noreferrer"
+          className="focus-ring mt-8 flex flex-col items-center justify-center gap-1.5 py-4 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <span>Designed and Developed by</span>
+          <span className="flex items-center gap-1.5">
+            <Github className="size-[15px]" strokeWidth={1.8} />
+            cmxau
+          </span>
+        </a>
       </div>
 
       <BottomSheet open={nameOpen} onClose={() => setNameOpen(false)} title="Your name">

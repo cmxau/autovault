@@ -9,7 +9,12 @@ const actions = [
   { label: "Add Service", detail: "Work performed and cost", icon: Wrench, to: "/add/service" },
   { label: "Add Expense", detail: "Tolls, parking, repairs", icon: Receipt, to: "/add/expense" },
   { label: "Update Odometer", detail: "Keep distance accurate", icon: Gauge, to: "/add/odometer" },
-  { label: "Add Document", detail: "Store it in the glovebox", icon: FileText, to: "/glovebox/new" },
+  {
+    label: "Add Document",
+    detail: "Store it in the glovebox",
+    icon: FileText,
+    to: "/glovebox/new",
+  },
 ] as const;
 
 export function AddSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
