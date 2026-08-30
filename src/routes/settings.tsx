@@ -58,8 +58,14 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   const { vehicles } = useGarage();
   const { theme, setTheme } = useTheme();
-  const { serviceReminders, expiryReminders, setServiceReminders, setExpiryReminders } =
-    useNotificationPrefs();
+  const {
+    serviceReminders,
+    expiryReminders,
+    pushEnabled,
+    setServiceReminders,
+    setExpiryReminders,
+    setPushEnabled,
+  } = useNotificationPrefs();
   const { system, currency, setSystem, setCurrency } = useUnitPrefs();
   const { canPrompt, installed, isIOS, promptInstall } = usePwaInstall();
   const profileName = useProfileName();
@@ -127,6 +133,12 @@ function SettingsPage() {
         <section>
           <SectionHeader title="Notifications" />
           <FormGroup>
+            <ToggleRow
+              label="Push notifications"
+              detail="Real alerts on this device, even in the background"
+              checked={pushEnabled}
+              onChange={(value) => void setPushEnabled(value)}
+            />
             <ToggleRow
               label="Service reminders"
               detail="Distance and date based"
@@ -273,7 +285,12 @@ function SettingsPage() {
         </div>
       </BottomSheet>
 
-      <BottomSheet open={currencyOpen} onClose={() => setCurrencyOpen(false)} title="Currency">
+      <BottomSheet
+        open={currencyOpen}
+        onClose={() => setCurrencyOpen(false)}
+        title="Currency"
+        description="Amounts are entered and stored in ₹ INR. Choosing a different currency only converts figures for viewing, using fixed rates set when the app was built, not live exchange rates."
+      >
         <div className="flex flex-col gap-1.5">
           {currencyOptions.map((option) => (
             <button

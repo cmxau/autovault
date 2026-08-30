@@ -53,17 +53,40 @@ export function currencySymbol(currency: Currency) {
   return CURRENCY_SYMBOLS[currency];
 }
 
+/**
+ * All amounts are entered and stored in INR; there is no per-entry currency,
+ * and no live exchange rate API (this app makes no network calls). These are
+ * fixed, approximate rates set at build time, not real-time FX. Selecting a
+ * different display currency converts INR amounts for viewing only; it does
+ * not change what you type into a form.
+ */
+const FIXED_INR_RATES: Record<Currency, number> = {
+  INR: 1,
+  USD: 1 / 83,
+  EUR: 1 / 90,
+  GBP: 1 / 105,
+};
+
+export function convertFromInr(amountInr: number, currency: Currency) {
+  return amountInr * FIXED_INR_RATES[currency];
+}
+
 export function formatCostPerDistance(
-  costPerKm: number,
+  costPerKmInr: number,
   system: DistanceSystem,
   currency: Currency,
 ) {
-  const perUnit = system === "imperial" ? costPerKm * KM_PER_MILE : costPerKm;
+  const perUnit = system === "imperial" ? costPerKmInr * KM_PER_MILE : costPerKmInr;
   return `${formatMoney(perUnit, currency, { decimals: 2 })}/${distanceUnitLabel(system)}`;
 }
 
-export function formatMoney(amount: number, currency: Currency, opts: { decimals?: number } = {}) {
-  return `${currencySymbol(currency)}${amount.toLocaleString("en-IN", {
+export function formatMoney(
+  amountInr: number,
+  currency: Currency,
+  opts: { decimals?: number } = {},
+) {
+  const converted = convertFromInr(amountInr, currency);
+  return `${currencySymbol(currency)}${converted.toLocaleString("en-IN", {
     minimumFractionDigits: opts.decimals ?? 0,
     maximumFractionDigits: opts.decimals ?? 0,
   })}`;

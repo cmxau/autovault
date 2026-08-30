@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const KEY = "autovault-reminder-leads";
 
 function read(): Record<string, number[]> {
+  if (typeof window === "undefined") return {};
   try {
     const raw = window.localStorage.getItem(KEY);
     return raw ? (JSON.parse(raw) as Record<string, number[]>) : {};
@@ -11,22 +12,32 @@ function read(): Record<string, number[]> {
   }
 }
 
+let state = read();
+const listeners = new Set<() => void>();
+
+function setState(next: Record<string, number[]>) {
+  state = next;
+  if (typeof window !== "undefined") window.localStorage.setItem(KEY, JSON.stringify(next));
+  for (const listener of listeners) listener();
+}
+
 export function useReminderLeads() {
-  const [leads, setLeadsState] = useState<Record<string, number[]>>({});
+  const leads = useSyncExternalStore(
+    (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    () => state,
+    () => ({}) as Record<string, number[]>,
+  );
 
-  useEffect(() => setLeadsState(read()), []);
+  const toggle = (id: string, days: number) => {
+    const current = state[id] ?? [30, 7];
+    const next = current.includes(days) ? current.filter((d) => d !== days) : [...current, days];
+    setState({ ...state, [id]: next });
+  };
 
-  const toggle = useCallback((id: string, days: number) => {
-    setLeadsState((prev) => {
-      const current = prev[id] ?? [30, 7];
-      const next = current.includes(days) ? current.filter((d) => d !== days) : [...current, days];
-      const nextState = { ...prev, [id]: next };
-      window.localStorage.setItem(KEY, JSON.stringify(nextState));
-      return nextState;
-    });
-  }, []);
-
-  const forId = useCallback((id: string) => leads[id] ?? [30, 7], [leads]);
+  const forId = (id: string) => leads[id] ?? [30, 7];
 
   return { forId, toggle };
 }

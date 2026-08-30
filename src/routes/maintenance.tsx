@@ -4,12 +4,13 @@ import { Row, RowGroup } from "@/components/autovault/row";
 import { ProgressBar } from "@/components/autovault/metric";
 import { SecondaryButton } from "@/components/autovault/buttons";
 import { useGarage } from "@/hooks/use-garage";
-import { useDocs } from "@/hooks/use-garage-data";
+import { useDocs, useChecklist } from "@/hooks/use-garage-data";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import { formatDistance } from "@/lib/units";
 import { computeHealth, computeMaintenanceItems, computeServiceStatus } from "@/lib/analytics";
 import { VehicleNotesSection } from "@/components/autovault/vehicle-notes";
+import { ChecklistSection } from "@/components/autovault/checklist-section";
 
 export const Route = createFileRoute("/maintenance")({
   head: () => ({
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/maintenance")({
 function MaintenancePage() {
   const { vehicle } = useGarage();
   const docs = useDocs();
+  const checklist = useChecklist();
   const navigate = useNavigate();
   const { system } = useUnitPrefs();
 
@@ -46,7 +48,7 @@ function MaintenancePage() {
   }
 
   const items = computeMaintenanceItems(vehicle, docs, system);
-  const health = computeHealth(vehicle, docs);
+  const health = computeHealth(vehicle, docs, checklist);
   const service = computeServiceStatus(vehicle, system);
 
   const serviceStart = vehicle.nextServiceKm - 10000;
@@ -91,6 +93,8 @@ function MaintenancePage() {
           ))}
         </RowGroup>
       </section>
+
+      <ChecklistSection vehicle={vehicle} checklist={checklist} />
 
       <VehicleNotesSection vehicle={vehicle} />
 

@@ -1,4 +1,5 @@
 import type {
+  ChecklistItem,
   Doc,
   MaintenanceItem,
   Status,
@@ -110,7 +111,7 @@ export function computeRunningCost(timeline: TimelineEntry[], vehicleId: string)
   return km > 0 ? totalCost / km : 0;
 }
 
-export function computeHealth(vehicle: Vehicle, docs: Doc[]) {
+export function computeHealth(vehicle: Vehicle, docs: Doc[], checklist: ChecklistItem[] = []) {
   let score = 100;
   const remaining = vehicle.nextServiceKm - vehicle.odometer;
   if (remaining < 0) score -= 30;
@@ -121,7 +122,76 @@ export function computeHealth(vehicle: Vehicle, docs: Doc[]) {
     if (doc.daysLeft < 0) score -= 15;
     else if (doc.daysLeft <= 30) score -= 5;
   }
+
+  for (const item of ofVehicle(checklist, vehicle.id)) {
+    const status = computeChecklistStatus(item, vehicle).status;
+    if (status === "urgent") score -= 12;
+    else if (status === "warn") score -= 4;
+  }
+
   return Math.max(0, Math.min(100, score));
+}
+
+/** Common trackable maintenance items with typical service intervals. */
+export const CHECKLIST_PRESETS: {
+  kind: ChecklistItem["kind"];
+  label: string;
+  intervalKm?: number;
+  intervalMonths?: number;
+}[] = [
+  { kind: "engine_oil", label: "Engine oil", intervalKm: 5000, intervalMonths: 6 },
+  { kind: "tyres", label: "Tyres", intervalKm: 40000, intervalMonths: 60 },
+  { kind: "brakes", label: "Brake pads", intervalKm: 20000, intervalMonths: 24 },
+  { kind: "battery", label: "Battery", intervalMonths: 24 },
+  { kind: "coolant", label: "Coolant", intervalKm: 40000, intervalMonths: 24 },
+  { kind: "brake_fluid", label: "Brake fluid", intervalKm: 20000, intervalMonths: 24 },
+  { kind: "air_filter", label: "Air filter", intervalKm: 15000, intervalMonths: 12 },
+];
+
+export function computeChecklistStatus(
+  item: ChecklistItem,
+  vehicle: Vehicle,
+  system: DistanceSystem = "metric",
+) {
+  const kmSince =
+    item.lastServicedOdometer !== undefined ? vehicle.odometer - item.lastServicedOdometer : null;
+  const monthsSince = item.lastServicedDate ? -(monthsUntil(item.lastServicedDate) ?? 0) : null;
+
+  if (kmSince === null && monthsSince === null) {
+    return { status: "unknown" as Status, detail: "Not yet logged" };
+  }
+
+  const kmRemaining =
+    item.intervalKm !== undefined && kmSince !== null ? item.intervalKm - kmSince : null;
+  const monthsRemaining =
+    item.intervalMonths !== undefined && monthsSince !== null
+      ? item.intervalMonths - monthsSince
+      : null;
+
+  const overdue =
+    (kmRemaining !== null && kmRemaining < 0) || (monthsRemaining !== null && monthsRemaining < 0);
+  const dueSoon =
+    (kmRemaining !== null && kmRemaining < item.intervalKm! * 0.1) ||
+    (monthsRemaining !== null && monthsRemaining < 1);
+
+  const status: Status = overdue ? "urgent" : dueSoon ? "warn" : "ok";
+
+  const parts: string[] = [];
+  if (kmRemaining !== null) {
+    parts.push(
+      kmRemaining < 0
+        ? `${formatDistance(Math.abs(kmRemaining), system)} overdue`
+        : `${formatDistance(kmRemaining, system)} left`,
+    );
+  }
+  if (monthsRemaining !== null) {
+    parts.push(
+      monthsRemaining < 0
+        ? `${Math.abs(monthsRemaining)} mo overdue`
+        : `${monthsRemaining} mo left`,
+    );
+  }
+  return { status, detail: parts.join(" or ") || "On track" };
 }
 
 export function computeServiceStatus(vehicle: Vehicle, system: DistanceSystem = "metric") {
@@ -156,6 +226,7 @@ export function computeMaintenanceItems(
   vehicle: Vehicle,
   docs: Doc[],
   system: DistanceSystem = "metric",
+  checklist: ChecklistItem[] = [],
 ): MaintenanceItem[] {
   const service = computeServiceStatus(vehicle, system);
   const items: MaintenanceItem[] = [
@@ -166,6 +237,11 @@ export function computeMaintenanceItems(
       detail: service.detail,
     },
   ];
+
+  for (const item of ofVehicle(checklist, vehicle.id)) {
+    const { status, detail } = computeChecklistStatus(item, vehicle, system);
+    items.push({ id: item.id, label: item.label, status, detail });
+  }
 
   for (const doc of ofVehicle(docs, vehicle.id).filter((d) => d.expiry)) {
     const status: Status =

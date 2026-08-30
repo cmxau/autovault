@@ -6,7 +6,6 @@ import { ChipGroup, FormField, FormGroup, TextInput } from "@/components/autovau
 import { PrimaryButton } from "@/components/autovault/buttons";
 import { useGarage } from "@/hooks/use-garage";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
-import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import { currencySymbol } from "@/lib/units";
 import { garageStore } from "@/lib/store";
 
@@ -39,8 +38,9 @@ const categories = [
 
 function AddExpensePage() {
   const { vehicle } = useGarage();
-  const { currency } = useUnitPrefs();
-  const money = currencySymbol(currency);
+  // Amounts are always entered and stored in INR; the display-currency picker
+  // in Settings only converts for viewing, it doesn't change what you type here.
+  const money = currencySymbol("INR");
   const navigate = useNavigate();
   const [category, setCategory] = useState("Tolls");
   const [date, setDate] = useState("2026-08-05");

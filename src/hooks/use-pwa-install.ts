@@ -8,6 +8,10 @@ type BeforeInstallPromptEvent = Event & {
 export function usePwaInstall() {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
+  // Browser/UA sniffing is client-only info; computing it during render would
+  // differ from the server pass and trigger a hydration mismatch, so it's
+  // resolved after mount instead, same as `installed` below.
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
     const onPrompt = (e: Event) => {
@@ -23,6 +27,7 @@ export function usePwaInstall() {
       window.matchMedia("(display-mode: standalone)").matches ||
         (navigator as { standalone?: boolean }).standalone === true,
     );
+    setIsIOS(/iphone|ipad|ipod/i.test(navigator.userAgent));
 
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
@@ -31,8 +36,6 @@ export function usePwaInstall() {
       window.removeEventListener("appinstalled", onInstalled);
     };
   }, []);
-
-  const isIOS = typeof navigator !== "undefined" && /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   async function promptInstall() {
     if (!installEvent) return null;

@@ -41,9 +41,11 @@ const work = [
 
 function AddServicePage() {
   const { vehicle } = useGarage();
-  const { system, currency } = useUnitPrefs();
+  const { system } = useUnitPrefs();
   const distanceLabel = distanceUnitLabel(system);
-  const money = currencySymbol(currency);
+  // Amounts are always entered and stored in INR; the display-currency picker
+  // in Settings only converts for viewing, it doesn't change what you type here.
+  const money = currencySymbol("INR");
   const navigate = useNavigate();
   const [performed, setPerformed] = useState<string[]>(["Engine oil", "Oil filter"]);
   const [form, setForm] = useState({

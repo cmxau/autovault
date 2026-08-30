@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 
 const KEY = "autovault-notification-prefs";
 
-type Prefs = { serviceReminders: boolean; expiryReminders: boolean };
+type Prefs = { serviceReminders: boolean; expiryReminders: boolean; pushEnabled: boolean };
 
-const defaults: Prefs = { serviceReminders: true, expiryReminders: true };
+const defaults: Prefs = { serviceReminders: true, expiryReminders: true, pushEnabled: false };
 
 function read(): Prefs {
   try {
@@ -13,6 +13,11 @@ function read(): Prefs {
   } catch {
     return defaults;
   }
+}
+
+export function readNotificationPrefs(): Prefs {
+  if (typeof window === "undefined") return defaults;
+  return read();
 }
 
 export function useNotificationPrefs() {
@@ -28,10 +33,32 @@ export function useNotificationPrefs() {
     });
   }, []);
 
+  /** Must be called from a user gesture (e.g. a toggle's onChange). */
+  const setPushEnabled = useCallback(
+    async (value: boolean) => {
+      if (!value) {
+        update({ pushEnabled: false });
+        return;
+      }
+      if (typeof Notification === "undefined") {
+        update({ pushEnabled: false });
+        return;
+      }
+      const permission =
+        Notification.permission === "default"
+          ? await Notification.requestPermission()
+          : Notification.permission;
+      update({ pushEnabled: permission === "granted" });
+    },
+    [update],
+  );
+
   return {
     serviceReminders: prefs.serviceReminders,
     expiryReminders: prefs.expiryReminders,
+    pushEnabled: prefs.pushEnabled,
     setServiceReminders: (value: boolean) => update({ serviceReminders: value }),
     setExpiryReminders: (value: boolean) => update({ expiryReminders: value }),
+    setPushEnabled,
   };
 }

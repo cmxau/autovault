@@ -32,3 +32,11 @@ export function useNotes() {
     () => garageStore.getServerState().notes,
   );
 }
+
+export function useChecklist() {
+  return useSyncExternalStore(
+    garageStore.subscribe,
+    () => garageStore.getState().checklist,
+    () => garageStore.getServerState().checklist,
+  );
+}

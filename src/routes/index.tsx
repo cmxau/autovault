@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "motion/react";
-import { ShieldCheck, ChevronRight } from "lucide-react";
+import { ShieldCheck, ChevronRight, Search } from "lucide-react";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { Row, RowGroup } from "@/components/autovault/row";
 import { VehicleCarousel } from "@/components/vehicles/vehicle-carousel";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { useGarage } from "@/hooks/use-garage";
-import { useDocs, useTimeline } from "@/hooks/use-garage-data";
+import { useDocs, useTimeline, useChecklist } from "@/hooks/use-garage-data";
 import { useNotificationPrefs } from "@/hooks/use-notification-prefs";
 import { hasOnboarded } from "@/hooks/use-onboarding";
 import { greeting } from "@/lib/format";
@@ -47,6 +47,7 @@ function GaragePage() {
   const { vehicle } = useGarage();
   const timeline = useTimeline();
   const docs = useDocs();
+  const checklist = useChecklist();
   const reduce = useReducedMotion();
   const { system, currency } = useUnitPrefs();
   const { serviceReminders, expiryReminders } = useNotificationPrefs();
@@ -70,6 +71,15 @@ function GaragePage() {
           <ShieldCheck className="size-3.5 text-ok" strokeWidth={1.8} />
           Stored on this device
         </span>
+      }
+      action={
+        <Link
+          to="/search"
+          aria-label="Search"
+          className="focus-ring grid size-10 place-items-center rounded-full bg-foreground/[0.05] text-foreground/70"
+        >
+          <Search className="size-[18px]" strokeWidth={1.8} />
+        </Link>
       }
     />
   );
@@ -162,7 +172,7 @@ function GaragePage() {
           <Row
             title="Vehicle health"
             detail="Based on your maintenance records"
-            trailing={`${computeHealth(vehicle, docs)}%`}
+            trailing={`${computeHealth(vehicle, docs, checklist)}%`}
             to="/maintenance"
           />
           <Row title="Glovebox" detail="RC, insurance, PUC and invoices" to="/glovebox" />

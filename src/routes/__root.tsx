@@ -16,6 +16,8 @@ import { ErrorPage } from "@/components/autovault/error-page";
 import { GarageProvider } from "@/hooks/use-garage";
 import { Toaster } from "@/components/ui/sonner";
 import { applyStoredTheme } from "@/hooks/use-theme";
+import { useAutoBackup } from "@/hooks/use-auto-backup";
+import { useReminderNotifications } from "@/hooks/use-reminder-notifications";
 
 function NotFoundComponent() {
   return (
@@ -138,6 +140,9 @@ function RootComponent() {
       navigator.serviceWorker.register("/sw.js").catch(() => undefined);
     }
   }, []);
+
+  useAutoBackup();
+  useReminderNotifications();
 
   return (
     <QueryClientProvider client={queryClient}>

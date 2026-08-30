@@ -40,11 +40,13 @@ export const Route = createFileRoute("/add/fuel")({
 
 function AddFuelPage() {
   const { vehicles, vehicle, setVehicleId } = useGarage();
-  const { system, currency } = useUnitPrefs();
+  const { system } = useUnitPrefs();
   const navigate = useNavigate();
   const distanceLabel = distanceUnitLabel(system);
   const volumeLabel = volumeUnitLabel(system);
-  const money = currencySymbol(currency);
+  // Amounts are always entered and stored in INR; the display-currency picker
+  // in Settings only converts for viewing, it doesn't change what you type here.
+  const money = currencySymbol("INR");
 
   const [date, setDate] = useState("2026-08-05");
   const [odometer, setOdometer] = useState(String((vehicle?.odometer ?? 0) + 320));

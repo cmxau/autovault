@@ -72,6 +72,28 @@ export type MaintenanceItem = {
   detail: string;
 };
 
+export type ChecklistKind =
+  | "engine_oil"
+  | "tyres"
+  | "brakes"
+  | "battery"
+  | "coolant"
+  | "brake_fluid"
+  | "air_filter"
+  | "custom";
+
+/** A single trackable maintenance item, e.g. "Engine oil" for one vehicle. */
+export type ChecklistItem = {
+  id: string;
+  vehicleId: string;
+  kind: ChecklistKind;
+  label: string;
+  intervalKm?: number;
+  intervalMonths?: number;
+  lastServicedDate?: string;
+  lastServicedOdometer?: number;
+};
+
 export type Reminder = {
   id: string;
   vehicleId: string;

@@ -16,6 +16,7 @@ import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as MaintenanceRouteImport } from './routes/maintenance'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RemindersRouteImport } from './routes/reminders'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as TimelineRouteImport } from './routes/timeline'
 import { Route as WelcomeRouteImport } from './routes/welcome'
@@ -65,6 +66,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const RemindersRoute = RemindersRouteImport.update({
   id: '/reminders',
   path: '/reminders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/maintenance': typeof MaintenanceRoute
   '/privacy': typeof PrivacyRoute
   '/reminders': typeof RemindersRoute
+  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/timeline': typeof TimelineRoute
   '/welcome': typeof WelcomeRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/maintenance': typeof MaintenanceRoute
   '/privacy': typeof PrivacyRoute
   '/reminders': typeof RemindersRoute
+  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/timeline': typeof TimelineRoute
   '/welcome': typeof WelcomeRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/maintenance': typeof MaintenanceRoute
   '/privacy': typeof PrivacyRoute
   '/reminders': typeof RemindersRoute
+  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/timeline': typeof TimelineRoute
   '/welcome': typeof WelcomeRoute
@@ -226,6 +235,7 @@ export interface FileRouteTypes {
     | '/maintenance'
     | '/privacy'
     | '/reminders'
+    | '/search'
     | '/settings'
     | '/timeline'
     | '/welcome'
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/maintenance'
     | '/privacy'
     | '/reminders'
+    | '/search'
     | '/settings'
     | '/timeline'
     | '/welcome'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/maintenance'
     | '/privacy'
     | '/reminders'
+    | '/search'
     | '/settings'
     | '/timeline'
     | '/welcome'
@@ -299,6 +311,7 @@ export interface RootRouteChildren {
   MaintenanceRoute: typeof MaintenanceRoute
   PrivacyRoute: typeof PrivacyRoute
   RemindersRoute: typeof RemindersRoute
+  SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
   TimelineRoute: typeof TimelineRoute
   WelcomeRoute: typeof WelcomeRoute
@@ -364,6 +377,13 @@ declare module '@tanstack/react-router' {
       path: '/reminders'
       fullPath: '/reminders'
       preLoaderRoute: typeof RemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -494,6 +514,7 @@ const rootRouteChildren: RootRouteChildren = {
   MaintenanceRoute: MaintenanceRoute,
   PrivacyRoute: PrivacyRoute,
   RemindersRoute: RemindersRoute,
+  SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
   TimelineRoute: TimelineRoute,
   WelcomeRoute: WelcomeRoute,

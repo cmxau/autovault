@@ -22,7 +22,7 @@ import {
 } from "@/lib/units";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import { garageStore } from "@/lib/store";
-import { useDocs, useTimeline, useVehicles } from "@/hooks/use-garage-data";
+import { useDocs, useTimeline, useVehicles, useChecklist } from "@/hooks/use-garage-data";
 import {
   computeExpenseCategories,
   computeHealth,
@@ -50,6 +50,7 @@ function VehicleDetailPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const timeline = useTimeline();
   const docs = useDocs();
+  const checklist = useChecklist();
   const navigate = useNavigate();
   const { system, currency } = useUnitPrefs();
 
@@ -65,8 +66,8 @@ function VehicleDetailPage() {
   }
 
   const now = new Date();
-  const items = computeMaintenanceItems(vehicle, docs, system);
-  const health = computeHealth(vehicle, docs);
+  const items = computeMaintenanceItems(vehicle, docs, system, checklist);
+  const health = computeHealth(vehicle, docs, checklist);
   const service = computeServiceStatus(vehicle, system);
   const mileageStats = computeMileage(timeline, vehicle.id);
   const trend = mileageStats.trend;

@@ -1,19 +1,29 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Smartphone, Download, Upload } from "lucide-react";
+import { Check, Smartphone, Download, FolderOpen, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { FormGroup, ToggleRow } from "@/components/autovault/form";
 import { Row, RowGroup } from "@/components/autovault/row";
 import { PrimaryButton, SecondaryButton } from "@/components/autovault/buttons";
 import { PassphraseSheet } from "@/components/autovault/passphrase-sheet";
+import { BottomSheet } from "@/components/autovault/bottom-sheet";
 import { useBackupSettings, useLastBackupAt } from "@/hooks/use-backup-settings";
 import { useTimeline } from "@/hooks/use-garage-data";
+import { useBackupFrequency, type BackupFrequency } from "@/hooks/use-auto-backup";
+import {
+  chooseBackupFolder,
+  ensureWritePermission,
+  forgetBackupFolder,
+  getStoredBackupFolder,
+  isFileSystemAccessSupported,
+} from "@/lib/backup-fs";
 import {
   countChangesSince,
   exportAutoVaultBackup,
   exportTimelineCsv,
   restoreBackupFile,
+  type ParsedBackup,
 } from "@/lib/backup";
 
 export const Route = createFileRoute("/privacy")({
@@ -35,39 +45,106 @@ export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,
 });
 
+const FREQUENCY_OPTIONS: { value: BackupFrequency; label: string }[] = [
+  { value: "off", label: "Off" },
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "biweekly", label: "Bi-weekly" },
+  { value: "monthly", label: "Monthly" },
+];
+
 function PrivacyPage() {
   const { encryptBackup, includeDocuments, setEncryptBackup, setIncludeDocuments } =
     useBackupSettings();
   const { lastBackupAt, markBackedUp } = useLastBackupAt();
+  const { frequency, setFrequency } = useBackupFrequency();
   const timeline = useTimeline();
   const restoreInputRef = useRef<HTMLInputElement>(null);
+  // File System Access support is browser-only info; computing it during render
+  // would differ between the server pass and the client's first paint and
+  // trigger a hydration mismatch, so it's resolved after mount instead.
+  const [fsSupported, setFsSupported] = useState(false);
 
   const [exportSheetOpen, setExportSheetOpen] = useState(false);
   const [restoreSheetOpen, setRestoreSheetOpen] = useState(false);
+  const [frequencySheetOpen, setFrequencySheetOpen] = useState(false);
   const [pendingRestoreFile, setPendingRestoreFile] = useState<File | null>(null);
+  const [pendingTarget, setPendingTarget] = useState<"download" | "folder">("download");
+  const [folderConnected, setFolderConnected] = useState(false);
+  const [pendingRestore, setPendingRestore] = useState<ParsedBackup | null>(null);
+  const [restoreModeSheetOpen, setRestoreModeSheetOpen] = useState(false);
+
+  useEffect(() => {
+    setFsSupported(isFileSystemAccessSupported());
+    void getStoredBackupFolder().then((handle) => setFolderConnected(handle !== null));
+  }, []);
 
   const changes = countChangesSince(lastBackupAt, timeline);
 
-  async function runExport(passphrase?: string) {
+  async function runExport(passphrase?: string, target: "download" | "folder" = "download") {
     try {
+      const folderHandle = target === "folder" ? await getStoredBackupFolder() : null;
+      if (target === "folder" && !folderHandle) {
+        toast.error("Choose a backup folder first");
+        return;
+      }
+      if (folderHandle) {
+        const permitted = await ensureWritePermission(folderHandle, { requestIfNeeded: true });
+        if (!permitted) {
+          toast.error("Folder access denied");
+          return;
+        }
+      }
       const filename = await exportAutoVaultBackup({
         includeDocuments,
         encrypt: encryptBackup,
         ...(passphrase !== undefined && { passphrase }),
+        folderHandle,
       });
       markBackedUp(new Date().toISOString());
-      toast.success("Backup exported", { description: filename });
+      toast.success(target === "folder" ? "Backup saved" : "Backup exported", {
+        description: filename,
+      });
     } catch (err) {
-      toast.error("Export failed", { description: err instanceof Error ? err.message : undefined });
+      toast.error("Backup failed", { description: err instanceof Error ? err.message : undefined });
+    }
+  }
+
+  function startExport(target: "download" | "folder") {
+    if (encryptBackup) {
+      setPendingTarget(target);
+      setExportSheetOpen(true);
+    } else {
+      void runExport(undefined, target);
     }
   }
 
   function handleExportClick() {
-    if (encryptBackup) {
-      setExportSheetOpen(true);
-    } else {
-      void runExport();
+    startExport("download");
+  }
+
+  async function handleChooseFolder() {
+    try {
+      await chooseBackupFolder();
+      setFolderConnected(true);
+      toast.success("Backup folder connected", { description: "Saving into an AutoVault folder" });
+    } catch {
+      // user cancelled the picker
     }
+  }
+
+  async function handleForgetFolder() {
+    await forgetBackupFolder();
+    setFolderConnected(false);
+    toast.success("Backup folder disconnected");
+  }
+
+  function handleBackupNow() {
+    if (!folderConnected) {
+      toast.error("Choose a backup folder first");
+      return;
+    }
+    startExport("folder");
   }
 
   function handleExportCsv() {
@@ -83,14 +160,23 @@ function PrivacyPage() {
         setRestoreSheetOpen(true);
         return;
       }
-      toast.success("Garage restored", {
-        description: `${result.vehicleCount} vehicles, ${result.entryCount} entries`,
-      });
+      setPendingRestore(result);
+      setRestoreModeSheetOpen(true);
     } catch (err) {
       toast.error("Couldn't restore that file", {
         description: err instanceof Error ? err.message : "Choose a valid .autovault file",
       });
     }
+  }
+
+  function applyRestore(mode: "replace" | "merge") {
+    if (!pendingRestore) return;
+    pendingRestore.apply(mode);
+    toast.success(mode === "merge" ? "Garage merged" : "Garage restored", {
+      description: `${pendingRestore.vehicleCount} vehicles, ${pendingRestore.entryCount} entries`,
+    });
+    setPendingRestore(null);
+    setRestoreModeSheetOpen(false);
   }
 
   return (
@@ -188,17 +274,80 @@ function PrivacyPage() {
         </p>
       </section>
 
+      <section className="mt-8">
+        <SectionHeader title="Auto Backup" />
+        <RowGroup>
+          <Row
+            icon={FolderOpen}
+            title="Backup folder"
+            detail={
+              !fsSupported
+                ? "Not supported in this browser"
+                : folderConnected
+                  ? "Connected · AutoVault folder"
+                  : "Not set"
+            }
+            {...(fsSupported && {
+              onClick: folderConnected ? handleForgetFolder : handleChooseFolder,
+            })}
+          />
+          <Row
+            title="Frequency"
+            trailing={FREQUENCY_OPTIONS.find((f) => f.value === frequency)?.label}
+            onClick={() => setFrequencySheetOpen(true)}
+          />
+        </RowGroup>
+
+        <div className="mt-4">
+          <PrimaryButton icon={Download} onClick={handleBackupNow}>
+            Back Up Now
+          </PrimaryButton>
+        </div>
+
+        <p className="mt-3 px-1 text-[12px] leading-relaxed text-muted-foreground">
+          {fsSupported
+            ? "Backups are saved into an AutoVault folder inside the location you choose. Scheduled backups run unencrypted so they can happen without a passphrase prompt; use Export above for an encrypted copy."
+            : "Automatic folder backups need Chrome, Edge or another Chromium browser on desktop. Use Export above to save a backup manually here."}
+        </p>
+      </section>
+
       <PassphraseSheet
         open={exportSheetOpen}
         title="Encrypt backup"
         description="Choose a passphrase: you'll need it to restore this file"
-        confirmLabel="Export"
+        confirmLabel={pendingTarget === "folder" ? "Save" : "Export"}
         onClose={() => setExportSheetOpen(false)}
         onSubmit={(passphrase) => {
           setExportSheetOpen(false);
-          void runExport(passphrase);
+          void runExport(passphrase, pendingTarget);
         }}
       />
+
+      <BottomSheet
+        open={frequencySheetOpen}
+        onClose={() => setFrequencySheetOpen(false)}
+        title="Backup Frequency"
+        description="How often AutoVault should save automatically to your backup folder"
+      >
+        <div className="flex flex-col gap-1.5">
+          {FREQUENCY_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                setFrequency(option.value);
+                setFrequencySheetOpen(false);
+              }}
+              className="focus-ring flex min-h-[52px] items-center justify-between rounded-[14px] px-3.5 text-left transition-colors hover:bg-foreground/[0.05]"
+            >
+              <span className="text-[15px]">{option.label}</span>
+              {frequency === option.value && (
+                <Check className="size-[18px] text-primary" strokeWidth={2.2} />
+              )}
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
 
       <PassphraseSheet
         open={restoreSheetOpen}
@@ -215,6 +364,32 @@ function PrivacyPage() {
           setPendingRestoreFile(null);
         }}
       />
+
+      <BottomSheet
+        open={restoreModeSheetOpen}
+        onClose={() => {
+          setRestoreModeSheetOpen(false);
+          setPendingRestore(null);
+        }}
+        title="Restore or merge?"
+        {...(pendingRestore && {
+          description: `This file has ${pendingRestore.vehicleCount} vehicles and ${pendingRestore.entryCount} entries.`,
+        })}
+      >
+        <div className="space-y-3">
+          <PrimaryButton onClick={() => applyRestore("merge")}>
+            Merge with current garage
+          </PrimaryButton>
+          <SecondaryButton onClick={() => applyRestore("replace")}>
+            Replace current garage
+          </SecondaryButton>
+          <p className="px-1 text-[12px] leading-relaxed text-muted-foreground">
+            Merge keeps everything you have now and adds anything new from the file, overwriting
+            only entries with a matching ID. Replace deletes your current garage and uses only
+            what's in the file.
+          </p>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

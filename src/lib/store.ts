@@ -3,13 +3,14 @@ import {
   timeline as seedTimeline,
   docs as seedDocs,
 } from "@/lib/mock-data";
-import type { Vehicle, TimelineEntry, Doc, VehicleNote } from "@/types/autovault";
+import type { Vehicle, TimelineEntry, Doc, VehicleNote, ChecklistItem } from "@/types/autovault";
 
 const KEYS = {
   vehicles: "autovault-vehicles",
   timeline: "autovault-timeline",
   docs: "autovault-docs",
   notes: "autovault-notes",
+  checklist: "autovault-checklist",
 } as const;
 
 export type GarageState = {
@@ -17,15 +18,18 @@ export type GarageState = {
   timeline: TimelineEntry[];
   docs: Doc[];
   notes: VehicleNote[];
+  checklist: ChecklistItem[];
 };
 
 const seedNotes: VehicleNote[] = [];
+const seedChecklist: ChecklistItem[] = [];
 
 const seedState: GarageState = {
   vehicles: seedVehicles,
   timeline: seedTimeline,
   docs: seedDocs,
   notes: seedNotes,
+  checklist: seedChecklist,
 };
 
 function readKey<T>(key: string, fallback: T): T {
@@ -44,6 +48,7 @@ function loadInitialState(): GarageState {
     timeline: readKey(KEYS.timeline, seedTimeline),
     docs: readKey(KEYS.docs, seedDocs),
     notes: readKey(KEYS.notes, seedNotes),
+    checklist: readKey(KEYS.checklist, seedChecklist),
   };
 }
 
@@ -56,6 +61,7 @@ function persist() {
   window.localStorage.setItem(KEYS.timeline, JSON.stringify(state.timeline));
   window.localStorage.setItem(KEYS.docs, JSON.stringify(state.docs));
   window.localStorage.setItem(KEYS.notes, JSON.stringify(state.notes));
+  window.localStorage.setItem(KEYS.checklist, JSON.stringify(state.checklist));
 }
 
 function emit() {
@@ -104,6 +110,7 @@ export const garageStore = {
       timeline: state.timeline.filter((e) => e.vehicleId !== vehicleId),
       docs: state.docs.filter((d) => d.vehicleId !== vehicleId),
       notes: state.notes.filter((n) => n.vehicleId !== vehicleId),
+      checklist: state.checklist.filter((c) => c.vehicleId !== vehicleId),
     });
   },
 
@@ -133,17 +140,54 @@ export const garageStore = {
     setState({ ...state, notes: state.notes.filter((n) => n.id !== noteId) });
   },
 
-  restore(data: {
-    vehicles: Vehicle[];
-    timeline: TimelineEntry[];
-    docs?: Doc[];
-    notes?: VehicleNote[];
-  }) {
+  addChecklistItem(item: ChecklistItem) {
+    setState({ ...state, checklist: [...state.checklist, item] });
+  },
+  updateChecklistItem(itemId: string, patch: Partial<ChecklistItem>) {
     setState({
-      vehicles: data.vehicles,
-      timeline: data.timeline,
-      docs: data.docs ?? state.docs,
-      notes: data.notes ?? state.notes,
+      ...state,
+      checklist: state.checklist.map((c) => (c.id === itemId ? { ...c, ...patch } : c)),
+    });
+  },
+  deleteChecklistItem(itemId: string) {
+    setState({ ...state, checklist: state.checklist.filter((c) => c.id !== itemId) });
+  },
+
+  restore(
+    data: {
+      vehicles: Vehicle[];
+      timeline: TimelineEntry[];
+      docs?: Doc[];
+      notes?: VehicleNote[];
+      checklist?: ChecklistItem[];
+    },
+    mode: "replace" | "merge" = "replace",
+  ) {
+    if (mode === "replace") {
+      setState({
+        vehicles: data.vehicles,
+        timeline: data.timeline,
+        docs: data.docs ?? state.docs,
+        notes: data.notes ?? state.notes,
+        checklist: data.checklist ?? state.checklist,
+      });
+      return;
+    }
+
+    // Merge: entries with a matching id are overwritten by the incoming backup
+    // (the imported copy wins), everything else from both sides is kept.
+    const mergeById = <T extends { id: string }>(existing: T[], incoming: T[]) => {
+      const byId = new Map(existing.map((item) => [item.id, item]));
+      for (const item of incoming) byId.set(item.id, item);
+      return [...byId.values()];
+    };
+
+    setState({
+      vehicles: mergeById(state.vehicles, data.vehicles),
+      timeline: mergeById(state.timeline, data.timeline),
+      docs: mergeById(state.docs, data.docs ?? []),
+      notes: mergeById(state.notes, data.notes ?? []),
+      checklist: mergeById(state.checklist, data.checklist ?? []),
     });
   },
 

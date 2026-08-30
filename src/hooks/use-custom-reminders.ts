@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const KEY = "autovault-custom-reminders";
 
@@ -10,6 +10,7 @@ export type CustomReminder = {
 };
 
 function read(): CustomReminder[] {
+  if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
     return raw ? (JSON.parse(raw) as CustomReminder[]) : [];
@@ -18,41 +19,36 @@ function read(): CustomReminder[] {
   }
 }
 
-function write(items: CustomReminder[]) {
-  window.localStorage.setItem(KEY, JSON.stringify(items));
+let state = read();
+const listeners = new Set<() => void>();
+
+function setState(next: CustomReminder[]) {
+  state = next;
+  if (typeof window !== "undefined") window.localStorage.setItem(KEY, JSON.stringify(next));
+  for (const listener of listeners) listener();
 }
 
 export function useCustomReminders(vehicleId: string) {
-  const [all, setAll] = useState<CustomReminder[]>([]);
-
-  useEffect(() => setAll(read()), []);
-
-  const add = useCallback(
-    (label: string, detail: string) => {
-      setAll((prev) => {
-        const next = [...prev, { id: crypto.randomUUID(), vehicleId, label, detail }];
-        write(next);
-        return next;
-      });
+  const all = useSyncExternalStore(
+    (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
-    [vehicleId],
+    () => state,
+    () => [] as CustomReminder[],
   );
 
-  const remove = useCallback((id: string) => {
-    setAll((prev) => {
-      const next = prev.filter((r) => r.id !== id);
-      write(next);
-      return next;
-    });
-  }, []);
+  const add = (label: string, detail: string) => {
+    setState([...state, { id: crypto.randomUUID(), vehicleId, label, detail }]);
+  };
 
-  const update = useCallback((id: string, label: string, detail: string) => {
-    setAll((prev) => {
-      const next = prev.map((r) => (r.id === id ? { ...r, label, detail } : r));
-      write(next);
-      return next;
-    });
-  }, []);
+  const remove = (id: string) => {
+    setState(state.filter((r) => r.id !== id));
+  };
+
+  const update = (id: string, label: string, detail: string) => {
+    setState(state.map((r) => (r.id === id ? { ...r, label, detail } : r)));
+  };
 
   return { items: all.filter((r) => r.vehicleId === vehicleId), add, remove, update };
 }
