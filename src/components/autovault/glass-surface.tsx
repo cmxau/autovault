@@ -33,7 +33,7 @@ export function GlassSurface({
   return <As className={cn(elevations[elevation], radii, className)}>{children}</As>;
 }
 
-/** Content-heavy grouped list container — tinted, readable, not glassy. */
+/** Content-heavy grouped list container: tinted, readable, not glassy. */
 export function TintedCard({
   children,
   className,

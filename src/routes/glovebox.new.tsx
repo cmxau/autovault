@@ -12,13 +12,13 @@ import { daysUntil } from "@/lib/format";
 export const Route = createFileRoute("/glovebox/new")({
   head: () => ({
     meta: [
-      { title: "Add Document — AutoVault" },
+      { title: "Add Document · AutoVault" },
       {
         name: "description",
         content:
           "Add a registration, insurance, PUC or invoice document to your vehicle's glovebox.",
       },
-      { property: "og:title", content: "Add Document — AutoVault" },
+      { property: "og:title", content: "Add Document · AutoVault" },
       { property: "og:description", content: "Store a vehicle document privately on your device." },
     ],
   }),
@@ -122,7 +122,7 @@ function AddDocumentPage() {
               id: crypto.randomUUID(),
               vehicleId: vehicle.id,
               category,
-              title: `${category} — ${issuer}`,
+              title: `${category} · ${issuer}`,
               issuer,
               number,
               issued,

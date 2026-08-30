@@ -70,11 +70,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "viewport",
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
-      { title: "AutoVault — A private home for your vehicles" },
+      { title: "AutoVault: A private home for your vehicles" },
       {
         name: "description",
         content:
-          "AutoVault keeps mileage, service history, documents and reminders for every vehicle you own — stored privately on your device.",
+          "AutoVault keeps mileage, service history, documents and reminders for every vehicle you own, stored privately on your device.",
       },
       { name: "theme-color", content: "#f6f7f9" },
       { name: "mobile-web-app-capable", content: "yes" },

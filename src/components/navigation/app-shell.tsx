@@ -7,7 +7,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="relative min-h-screen w-full">
-      {/* ambient tint — single, restrained */}
+      {/* ambient tint: single, restrained */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-x-0 top-0 h-[42vh]"

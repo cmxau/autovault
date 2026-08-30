@@ -9,7 +9,7 @@ import { daysUntil } from "@/lib/format";
 
 export const Route = createFileRoute("/glovebox/$docId/edit")({
   head: () => ({
-    meta: [{ title: "Edit Document — AutoVault" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Edit Document · AutoVault" }, { name: "robots", content: "noindex" }],
   }),
   loader: ({ params }) => {
     const doc = garageStore.getState().docs.find((d) => d.id === params.docId);
@@ -74,7 +74,7 @@ function EditDocumentPage() {
 
             garageStore.updateDoc(doc.id, {
               category,
-              title: `${category} — ${issuer}`,
+              title: `${category} · ${issuer}`,
               issuer,
               number,
               issued,

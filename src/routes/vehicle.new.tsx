@@ -18,13 +18,13 @@ import type { Vehicle, VehicleKind } from "@/types/autovault";
 export const Route = createFileRoute("/vehicle/new")({
   head: () => ({
     meta: [
-      { title: "Add a Vehicle — AutoVault" },
+      { title: "Add a Vehicle · AutoVault" },
       {
         name: "description",
         content:
-          "Add a car, motorcycle or scooter to your garage in five short steps — everything else can wait.",
+          "Add a car, motorcycle or scooter to your garage in five short steps, everything else can wait.",
       },
-      { property: "og:title", content: "Add a Vehicle — AutoVault" },
+      { property: "og:title", content: "Add a Vehicle · AutoVault" },
       { property: "og:description", content: "A five-step way to add a vehicle to your garage." },
     ],
   }),

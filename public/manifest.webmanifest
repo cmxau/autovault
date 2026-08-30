@@ -1,7 +1,7 @@
 {
   "name": "AutoVault",
   "short_name": "AutoVault",
-  "description": "A private home for your vehicles — mileage, service history, documents and reminders, stored on your device.",
+  "description": "A private home for your vehicles: mileage, service history, documents and reminders, stored on your device.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

@@ -4,7 +4,7 @@ import { ErrorPage } from "@/components/autovault/error-page";
 
 export const Route = createFileRoute("/405")({
   head: () => ({
-    meta: [{ title: "Method not allowed — AutoVault" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Method not allowed · AutoVault" }, { name: "robots", content: "noindex" }],
   }),
   component: () => (
     <ErrorPage

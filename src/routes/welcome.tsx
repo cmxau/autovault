@@ -15,7 +15,7 @@ export const Route = createFileRoute("/welcome")({
       {
         name: "description",
         content:
-          "Everything about your vehicle in one private place — mileage, maintenance, documents and reminders, with no account required.",
+          "Everything about your vehicle in one private place: mileage, maintenance, documents and reminders, with no account required.",
       },
       { property: "og:title", content: "Welcome to AutoVault" },
       {
@@ -38,7 +38,7 @@ const screens = [
   },
   {
     title: "What should we call you?",
-    body: "A personal touch for your greeting — totally optional.",
+    body: "A personal touch for your greeting, totally optional.",
   },
   {
     title: "Your data stays yours.",

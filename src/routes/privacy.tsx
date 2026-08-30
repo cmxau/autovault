@@ -19,13 +19,13 @@ import {
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Data & Privacy — AutoVault" },
+      { title: "Data & Privacy · AutoVault" },
       {
         name: "description",
         content:
           "Your garage never leaves your device. Encrypt and export your data, or restore it, on your terms.",
       },
-      { property: "og:title", content: "Data & Privacy — AutoVault" },
+      { property: "og:title", content: "Data & Privacy · AutoVault" },
       {
         property: "og:description",
         content: "AutoVault keeps vehicle data, documents and history on your device.",
@@ -100,7 +100,7 @@ function PrivacyPage() {
       <div className="surface-tinted flex items-start gap-3 rounded-[25px] px-5 py-5">
         <Smartphone className="mt-0.5 size-[17px] shrink-0 text-primary" strokeWidth={1.7} />
         <p className="text-[13px] leading-relaxed text-muted-foreground">
-          Vehicle data, documents, service and fuel history all stay on this device — AutoVault
+          Vehicle data, documents, service and fuel history all stay on this device · AutoVault
           servers hold no personal vehicle database, there is no account, and nothing to sync.
         </p>
       </div>
@@ -191,7 +191,7 @@ function PrivacyPage() {
       <PassphraseSheet
         open={exportSheetOpen}
         title="Encrypt backup"
-        description="Choose a passphrase — you'll need it to restore this file"
+        description="Choose a passphrase: you'll need it to restore this file"
         confirmLabel="Export"
         onClose={() => setExportSheetOpen(false)}
         onSubmit={(passphrase) => {

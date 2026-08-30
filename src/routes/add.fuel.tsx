@@ -22,13 +22,13 @@ import { garageStore } from "@/lib/store";
 export const Route = createFileRoute("/add/fuel")({
   head: () => ({
     meta: [
-      { title: "Add Fuel — AutoVault" },
+      { title: "Add Fuel · AutoVault" },
       {
         name: "description",
         content:
           "Log a fill-up in seconds: litres, amount and odometer. AutoVault works out the per-litre price and mileage.",
       },
-      { property: "og:title", content: "Add Fuel — AutoVault" },
+      { property: "og:title", content: "Add Fuel · AutoVault" },
       {
         property: "og:description",
         content: "Quick fuel entry with automatic mileage calculation.",
@@ -117,7 +117,7 @@ function AddFuelPage() {
             onChange={setPrice}
             numeric
             suffix={`${money}/${volumeLabel}`}
-            placeholder="—"
+            placeholder="-"
           />
         </FormField>
         <FormField label="Total">
@@ -138,7 +138,7 @@ function AddFuelPage() {
             <TextInput value={station} onChange={setStation} placeholder="HP, Baner" />
           </FormField>
           <FormField label="Notes">
-            <TextInput value={notes} onChange={setNotes} placeholder="—" />
+            <TextInput value={notes} onChange={setNotes} placeholder="-" />
           </FormField>
         </FormGroup>
       </div>
@@ -162,7 +162,7 @@ function AddFuelPage() {
               odometer: Math.round(odometerKm),
               litres: quantityLitres,
               amount: derived.total,
-              ...((station || notes) && { note: [station, notes].filter(Boolean).join(" — ") }),
+              ...((station || notes) && { note: [station, notes].filter(Boolean).join(" · ") }),
             });
             garageStore.updateVehicle(vehicle.id, {
               odometer: Math.max(vehicle.odometer, Math.round(odometerKm)),

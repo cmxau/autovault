@@ -42,13 +42,13 @@ function openGithubIssue(template: string) {
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — AutoVault" },
+      { title: "Settings · AutoVault" },
       {
         name: "description",
         content:
           "Manage vehicles, units, reminders, app lock, backups and appearance for your AutoVault garage.",
       },
-      { property: "og:title", content: "Settings — AutoVault" },
+      { property: "og:title", content: "Settings · AutoVault" },
       { property: "og:description", content: "Garage, notification, privacy and data settings." },
     ],
   }),
@@ -71,14 +71,14 @@ function SettingsPage() {
   const [nameDraft, setNameDraft] = useState(profileName);
 
   const systemOptions: { value: DistanceSystem; label: string }[] = [
-    { value: "metric", label: "Metric — Kilometres · Litres" },
-    { value: "imperial", label: "Imperial — Miles · Gallons" },
+    { value: "metric", label: "Metric · Kilometres · Litres" },
+    { value: "imperial", label: "Imperial · Miles · Gallons" },
   ];
   const currencyOptions: { value: Currency; label: string }[] = [
-    { value: "INR", label: "₹ INR — Indian Rupee" },
-    { value: "USD", label: "$ USD — US Dollar" },
-    { value: "EUR", label: "€ EUR — Euro" },
-    { value: "GBP", label: "£ GBP — British Pound" },
+    { value: "INR", label: "₹ INR · Indian Rupee" },
+    { value: "USD", label: "$ USD · US Dollar" },
+    { value: "EUR", label: "€ EUR · Euro" },
+    { value: "GBP", label: "£ GBP · British Pound" },
   ];
 
   return (
@@ -118,7 +118,7 @@ function SettingsPage() {
             />
             <Row
               title="Currency"
-              trailing={currencyOptions.find((c) => c.value === currency)?.label.split(" — ")[0]}
+              trailing={currencyOptions.find((c) => c.value === currency)?.label.split(" · ")[0]}
               onClick={() => setCurrencyOpen(true)}
             />
           </RowGroup>
@@ -298,12 +298,12 @@ function SettingsPage() {
         open={iosInstallOpen}
         onClose={() => setIosInstallOpen(false)}
         title="Install AutoVault"
-        description="iOS doesn't let apps trigger this — a couple of taps in Safari:"
+        description="iOS doesn't let apps trigger this, but it's a couple of taps in Safari:"
       >
         <ol className="space-y-3 text-[14px] leading-relaxed">
           <li>1. Tap the Share icon in Safari's toolbar</li>
           <li>2. Scroll down and tap "Add to Home Screen"</li>
-          <li>3. Tap "Add" — AutoVault opens full-screen from your home screen</li>
+          <li>3. Tap "Add." AutoVault opens full-screen from your home screen.</li>
         </ol>
       </BottomSheet>
 
@@ -335,7 +335,7 @@ function SettingsPage() {
               All data you enter is stored locally on your device only. AutoVault does not transmit,
               sync, or retain a copy of your data on any server. You are solely responsible for
               backing it up. Use Data &amp; Privacy to export an encrypted backup before clearing
-              browser storage, switching devices, or reinstalling — uninstalling the app or clearing
+              browser storage, switching devices, or reinstalling. Uninstalling the app or clearing
               site data permanently and irrecoverably deletes everything stored here.
             </p>
           </div>

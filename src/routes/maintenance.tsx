@@ -13,13 +13,13 @@ import { computeHealth, computeMaintenanceItems, computeServiceStatus } from "@/
 export const Route = createFileRoute("/maintenance")({
   head: () => ({
     meta: [
-      { title: "Maintenance — AutoVault" },
+      { title: "Maintenance · AutoVault" },
       {
         name: "description",
         content:
           "Next service, maintenance item status and a record-based health summary for your vehicle.",
       },
-      { property: "og:title", content: "Maintenance — AutoVault" },
+      { property: "og:title", content: "Maintenance · AutoVault" },
       {
         property: "og:description",
         content: "Next service countdown and maintenance status from your own records.",
@@ -64,7 +64,7 @@ function MaintenancePage() {
         </p>
         {vehicle.nextServiceDate && (
           <p className="mt-1.5 text-[13px] text-muted-foreground">
-            or {vehicle.nextServiceDate} — whichever comes first
+            or {vehicle.nextServiceDate}, whichever comes first
           </p>
         )}
 

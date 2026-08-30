@@ -24,13 +24,13 @@ type Tab = "mileage" | "expenses";
 export const Route = createFileRoute("/insights")({
   head: () => ({
     meta: [
-      { title: "Insights — AutoVault" },
+      { title: "Insights · AutoVault" },
       {
         name: "description",
         content:
           "Track mileage trends, running cost per kilometre and where your vehicle spending actually goes.",
       },
-      { property: "og:title", content: "Insights — AutoVault" },
+      { property: "og:title", content: "Insights · AutoVault" },
       {
         property: "og:description",
         content: "Mileage trends and expense breakdowns for your vehicles.",

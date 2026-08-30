@@ -15,13 +15,13 @@ import { garageStore } from "@/lib/store";
 export const Route = createFileRoute("/add/service")({
   head: () => ({
     meta: [
-      { title: "Add Service — AutoVault" },
+      { title: "Add Service · AutoVault" },
       {
         name: "description",
         content:
           "Record a service visit: work performed, service centre, cost, invoice and the next service due.",
       },
-      { property: "og:title", content: "Add Service — AutoVault" },
+      { property: "og:title", content: "Add Service · AutoVault" },
       { property: "og:description", content: "Keep an accurate service history for your vehicle." },
     ],
   }),
@@ -116,7 +116,7 @@ function AddServicePage() {
           />
         </FormField>
         <FormField label="Notes">
-          <TextInput value={form.notes} onChange={set("notes")} placeholder="—" />
+          <TextInput value={form.notes} onChange={set("notes")} placeholder="-" />
         </FormField>
       </FormGroup>
 
@@ -187,7 +187,7 @@ function AddServicePage() {
               date: form.date,
               odometer: odometerKm,
               ...(Number(form.cost) > 0 && { amount: Number(form.cost) }),
-              note: [performed.join(", "), form.centre, form.notes].filter(Boolean).join(" — "),
+              note: [performed.join(", "), form.centre, form.notes].filter(Boolean).join(" · "),
             });
             garageStore.updateVehicle(vehicle.id, {
               odometer: Math.max(vehicle.odometer, odometerKm),
@@ -200,7 +200,7 @@ function AddServicePage() {
                 id: crypto.randomUUID(),
                 vehicleId: vehicle.id,
                 category: "Service Invoices",
-                title: `${form.type || "Service"} — ${form.centre || vehicle.nickname}`,
+                title: `${form.type || "Service"} · ${form.centre || vehicle.nickname}`,
                 issuer: form.centre || vehicle.nickname,
                 number: "",
                 issued: form.date,

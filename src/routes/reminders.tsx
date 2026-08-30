@@ -21,16 +21,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/reminders")({
   head: () => ({
     meta: [
-      { title: "Reminders — AutoVault" },
+      { title: "Reminders · AutoVault" },
       {
         name: "description",
         content:
           "Date and odometer based reminders for service, insurance, PUC, warranty and custom maintenance.",
       },
-      { property: "og:title", content: "Reminders — AutoVault" },
+      { property: "og:title", content: "Reminders · AutoVault" },
       {
         property: "og:description",
-        content: "Never miss a renewal — reminders for service, insurance, PUC and more.",
+        content: "Never miss a renewal: reminders for service, insurance, PUC and more.",
       },
     ],
   }),

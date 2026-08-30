@@ -11,7 +11,7 @@ import { displayToKm, distanceUnitLabel, kmToDisplay } from "@/lib/units";
 
 export const Route = createFileRoute("/vehicle/$vehicleId/edit")({
   head: () => ({
-    meta: [{ title: "Edit Vehicle — AutoVault" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Edit Vehicle · AutoVault" }, { name: "robots", content: "noindex" }],
   }),
   loader: ({ params }) => {
     const vehicle = garageStore.getState().vehicles.find((v) => v.id === params.vehicleId);

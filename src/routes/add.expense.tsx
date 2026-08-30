@@ -13,12 +13,12 @@ import { garageStore } from "@/lib/store";
 export const Route = createFileRoute("/add/expense")({
   head: () => ({
     meta: [
-      { title: "Add Expense — AutoVault" },
+      { title: "Add Expense · AutoVault" },
       {
         name: "description",
         content: "Record tolls, parking, repairs, accessories and other vehicle costs.",
       },
-      { property: "og:title", content: "Add Expense — AutoVault" },
+      { property: "og:title", content: "Add Expense · AutoVault" },
       { property: "og:description", content: "Track what your vehicle actually costs to run." },
     ],
   }),

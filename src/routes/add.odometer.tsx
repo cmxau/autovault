@@ -13,12 +13,12 @@ import { garageStore } from "@/lib/store";
 export const Route = createFileRoute("/add/odometer")({
   head: () => ({
     meta: [
-      { title: "Update Odometer — AutoVault" },
+      { title: "Update Odometer · AutoVault" },
       {
         name: "description",
         content: "Keep your distance, mileage and service countdown accurate with a quick reading.",
       },
-      { property: "og:title", content: "Update Odometer — AutoVault" },
+      { property: "og:title", content: "Update Odometer · AutoVault" },
       { property: "og:description", content: "Record the current odometer reading in seconds." },
     ],
   }),

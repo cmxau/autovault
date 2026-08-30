@@ -10,13 +10,13 @@ import { useDocs } from "@/hooks/use-garage-data";
 export const Route = createFileRoute("/glovebox/$docId")({
   head: () => ({
     meta: [
-      { title: "Document — AutoVault" },
+      { title: "Document · AutoVault" },
       {
         name: "description",
         content:
           "Provider, policy number, issue and expiry details for a document in your glovebox.",
       },
-      { property: "og:title", content: "Document — AutoVault" },
+      { property: "og:title", content: "Document · AutoVault" },
       {
         property: "og:description",
         content: "Vehicle document details kept privately on your device.",

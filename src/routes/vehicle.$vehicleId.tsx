@@ -37,9 +37,9 @@ type Tab = "overview" | "maintenance" | "fuel" | "expenses" | "glovebox";
 export const Route = createFileRoute("/vehicle/$vehicleId")({
   head: ({ loaderData }: { loaderData?: { vehicle: Vehicle } | undefined }) => {
     if (!loaderData) {
-      return { meta: [{ title: "Vehicle — AutoVault" }, { name: "robots", content: "noindex" }] };
+      return { meta: [{ title: "Vehicle · AutoVault" }, { name: "robots", content: "noindex" }] };
     }
-    const title = `${loaderData.vehicle.nickname} — AutoVault`;
+    const title = `${loaderData.vehicle.nickname} · AutoVault`;
     const description = `${loaderData.vehicle.year} ${loaderData.vehicle.make} ${loaderData.vehicle.model}: odometer, mileage, maintenance, fuel history and documents.`;
     return {
       meta: [

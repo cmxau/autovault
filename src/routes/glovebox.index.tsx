@@ -12,13 +12,13 @@ import type { Status } from "@/types/autovault";
 export const Route = createFileRoute("/glovebox/")({
   head: () => ({
     meta: [
-      { title: "Glovebox — AutoVault" },
+      { title: "Glovebox · AutoVault" },
       {
         name: "description",
         content:
-          "A secure digital glovebox for your RC, insurance, PUC, warranty and service invoices — kept on your device.",
+          "A secure digital glovebox for your RC, insurance, PUC, warranty and service invoices, kept on your device.",
       },
-      { property: "og:title", content: "Glovebox — AutoVault" },
+      { property: "og:title", content: "Glovebox · AutoVault" },
       {
         property: "og:description",
         content: "Registration, insurance, PUC and invoices stored privately with your vehicle.",

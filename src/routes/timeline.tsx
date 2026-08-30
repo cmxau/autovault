@@ -15,13 +15,13 @@ type Filter = "all" | "fuel" | "service" | "document" | "expense";
 export const Route = createFileRoute("/timeline")({
   head: () => ({
     meta: [
-      { title: "Timeline — AutoVault" },
+      { title: "Timeline · AutoVault" },
       {
         name: "description",
         content:
           "A chronological history of every fuel fill, service, document and expense for your vehicle.",
       },
-      { property: "og:title", content: "Timeline — AutoVault" },
+      { property: "og:title", content: "Timeline · AutoVault" },
       {
         property: "og:description",
         content: "The full life history of your vehicle, entry by entry.",

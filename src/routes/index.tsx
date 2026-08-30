@@ -26,13 +26,13 @@ import { ease } from "@/lib/motion";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "My Garage — AutoVault" },
+      { title: "My Garage · AutoVault" },
       {
         name: "description",
         content:
-          "See every vehicle you own at a glance: odometer, mileage, upcoming renewals and this month's running cost — all stored on your device.",
+          "See every vehicle you own at a glance: odometer, mileage, upcoming renewals and this month's running cost, all stored on your device.",
       },
-      { property: "og:title", content: "My Garage — AutoVault" },
+      { property: "og:title", content: "My Garage · AutoVault" },
       {
         property: "og:description",
         content:

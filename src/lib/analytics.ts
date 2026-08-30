@@ -148,7 +148,7 @@ export function computeServiceStatus(vehicle: Vehicle, system: DistanceSystem = 
   if (months === null) return { status, detail: `${distanceText} remaining` };
   return {
     status,
-    detail: `${distanceText} or ${months} mo remaining — whichever comes first`,
+    detail: `${distanceText} or ${months} mo remaining, whichever comes first`,
   };
 }
 
