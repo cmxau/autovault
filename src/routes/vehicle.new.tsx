@@ -1,10 +1,12 @@
 import { useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
-import { Car, Bike, Zap, ImagePlus } from "lucide-react";
+import { Car, Bike, Zap, ImagePlus, Check } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { FormField, FormGroup, TextInput } from "@/components/autovault/form";
+import { Row, RowGroup } from "@/components/autovault/row";
+import { BottomSheet } from "@/components/autovault/bottom-sheet";
 import { PrimaryButton, SecondaryButton } from "@/components/autovault/buttons";
 import { ProgressBar } from "@/components/autovault/metric";
 import { usePress } from "@/lib/motion";
@@ -38,6 +40,7 @@ const kinds = [
 ] as const;
 
 const titles = ["What are you adding?", "Vehicle", "Registration", "Odometer", "Personalize"];
+const fuelTypes = ["Petrol", "Diesel", "Electric", "CNG", "Hybrid", "Petrol + CNG"];
 
 function AddVehiclePage() {
   const navigate = useNavigate();
@@ -46,6 +49,8 @@ function AddVehiclePage() {
   const press = usePress(0.97);
   const [step, setStep] = useState(0);
   const [kind, setKind] = useState<string>("car");
+  const [fuel, setFuel] = useState<string>("Petrol");
+  const [fuelSheetOpen, setFuelSheetOpen] = useState(false);
   const [form, setForm] = useState({
     make: "",
     model: "",
@@ -135,20 +140,29 @@ function AddVehiclePage() {
           )}
 
           {step === 1 && (
-            <FormGroup>
-              <FormField label="Make">
-                <TextInput value={form.make} onChange={set("make")} placeholder="Honda" />
-              </FormField>
-              <FormField label="Model">
-                <TextInput value={form.model} onChange={set("model")} placeholder="City" />
-              </FormField>
-              <FormField label="Variant">
-                <TextInput value={form.variant} onChange={set("variant")} placeholder="ZX CVT" />
-              </FormField>
-              <FormField label="Year">
-                <TextInput value={form.year} onChange={set("year")} numeric placeholder="2023" />
-              </FormField>
-            </FormGroup>
+            <>
+              <FormGroup>
+                <FormField label="Make">
+                  <TextInput value={form.make} onChange={set("make")} placeholder="Honda" />
+                </FormField>
+                <FormField label="Model">
+                  <TextInput value={form.model} onChange={set("model")} placeholder="City" />
+                </FormField>
+                <FormField label="Variant">
+                  <TextInput value={form.variant} onChange={set("variant")} placeholder="ZX CVT" />
+                </FormField>
+                <FormField label="Year">
+                  <TextInput value={form.year} onChange={set("year")} numeric placeholder="2023" />
+                </FormField>
+              </FormGroup>
+
+              <div className="mt-7">
+                <SectionHeader title="Fuel type" />
+                <RowGroup>
+                  <Row title="Fuel type" trailing={fuel} onClick={() => setFuelSheetOpen(true)} />
+                </RowGroup>
+              </div>
+            </>
           )}
 
           {step === 2 && (
@@ -172,7 +186,7 @@ function AddVehiclePage() {
           {step === 3 && (
             <>
               <FormGroup>
-                <FormField label="Odometer" hint="Reading right now">
+                <FormField label="Odometer">
                   <TextInput
                     value={form.odometer}
                     onChange={set("odometer")}
@@ -182,11 +196,15 @@ function AddVehiclePage() {
                   />
                 </FormField>
               </FormGroup>
+              <p className="mt-2.5 px-1 text-[12px] leading-relaxed text-muted-foreground">
+                Enter your vehicle's current reading. This is the starting point for mileage and
+                service tracking.
+              </p>
 
               <div className="mt-7">
                 <SectionHeader title="Next Service" />
                 <FormGroup>
-                  <FormField label="At" hint="Leave blank for +5,000 from odometer">
+                  <FormField label="At">
                     <TextInput
                       value={form.nextServiceKm}
                       onChange={set("nextServiceKm")}
@@ -195,7 +213,7 @@ function AddVehiclePage() {
                       placeholder="-"
                     />
                   </FormField>
-                  <FormField label="Or by date" hint="Leave blank for 6 months from now">
+                  <FormField label="Or by date">
                     <TextInput
                       value={form.nextServiceDate}
                       onChange={set("nextServiceDate")}
@@ -204,8 +222,9 @@ function AddVehiclePage() {
                   </FormField>
                 </FormGroup>
                 <p className="mt-2.5 px-1 text-[12px] leading-relaxed text-muted-foreground">
-                  Service reminds you at whichever comes first, distance or date. Both can be
-                  changed later from the vehicle's edit screen.
+                  Service reminds you at whichever comes first, distance or date. Leave "At" blank
+                  to default to +5,000 from your odometer, and "Or by date" blank to default to 6
+                  months from now. Both can be changed later from the vehicle's edit screen.
                 </p>
               </div>
             </>
@@ -285,7 +304,7 @@ function AddVehiclePage() {
               model: form.model,
               variant: form.variant,
               year,
-              fuel: "Petrol",
+              fuel,
               registration: form.registration,
               odometer,
               avgMileage: 0,
@@ -317,6 +336,25 @@ function AddVehiclePage() {
           </p>
         )}
       </div>
+
+      <BottomSheet open={fuelSheetOpen} onClose={() => setFuelSheetOpen(false)} title="Fuel type">
+        <div className="flex flex-col gap-1.5">
+          {fuelTypes.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => {
+                setFuel(option);
+                setFuelSheetOpen(false);
+              }}
+              className="focus-ring flex min-h-[52px] items-center justify-between rounded-[14px] px-3.5 text-left transition-colors hover:bg-foreground/[0.05]"
+            >
+              <span className="text-[15px]">{option}</span>
+              {fuel === option && <Check className="size-[18px] text-primary" strokeWidth={2.2} />}
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
     </div>
   );
 }

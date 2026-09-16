@@ -3,23 +3,31 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { FormField, FormGroup, TextInput, ToggleRow } from "@/components/autovault/form";
-import { PrimaryButton } from "@/components/autovault/buttons";
+import { PrimaryButton, SecondaryButton } from "@/components/autovault/buttons";
 import { SegmentedControl } from "@/components/autovault/segmented-control";
 import { useGarage } from "@/hooks/use-garage";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import {
   currencySymbol,
+  displayToFuelQuantity,
   displayToKm,
-  displayToLitres,
   distanceUnitLabel,
   formatDistance,
-  formatMileage,
-  volumeUnitLabel,
+  formatEfficiency,
+  fuelQuantityToDisplay,
+  fuelUnitFor,
+  fuelUnitLabel,
+  kmToDisplay,
+  type FuelUnit,
 } from "@/lib/units";
 import { garageStore } from "@/lib/store";
+import { useTimeline } from "@/hooks/use-garage-data";
 
 export const Route = createFileRoute("/add/fuel")({
+  validateSearch: (search: Record<string, unknown>): { edit?: string } => ({
+    ...(typeof search["edit"] === "string" && { edit: search["edit"] }),
+  }),
   head: () => ({
     meta: [
       { title: "Add Fuel · AutoVault" },
@@ -42,20 +50,41 @@ function AddFuelPage() {
   const { vehicles, vehicle, setVehicleId } = useGarage();
   const { system } = useUnitPrefs();
   const navigate = useNavigate();
+  const { edit: editId } = Route.useSearch();
+  const timeline = useTimeline();
+  const editEntry = editId ? timeline.find((e) => e.id === editId) : undefined;
   const distanceLabel = distanceUnitLabel(system);
-  const volumeLabel = volumeUnitLabel(system);
   // Amounts are always entered and stored in INR; the display-currency picker
   // in Settings only converts for viewing, it doesn't change what you type here.
   const money = currencySymbol("INR");
 
-  const [date, setDate] = useState("2026-08-05");
-  const [odometer, setOdometer] = useState(String((vehicle?.odometer ?? 0) + 320));
-  const [quantity, setQuantity] = useState("8.6");
+  // A bi-fuel vehicle (e.g. "Petrol + CNG") can be filled with either fuel on
+  // a given trip, so ask which one this fill-up was rather than assuming.
+  const isBiFuel = vehicle?.fuel === "Petrol + CNG";
+  const [fuelChoice, setFuelChoice] = useState<"Petrol" | "CNG">("Petrol");
+  const unit: FuelUnit =
+    editEntry?.fuelUnit ??
+    (isBiFuel ? fuelUnitFor(fuelChoice) : fuelUnitFor(vehicle?.fuel ?? "Petrol"));
+  const unitLabel = fuelUnitLabel(unit, system);
+
+  const [date, setDate] = useState(editEntry?.date ?? "2026-08-05");
+  const [odometer, setOdometer] = useState(
+    editEntry?.odometer !== undefined
+      ? String(kmToDisplay(editEntry.odometer, system))
+      : String((vehicle?.odometer ?? 0) + 320),
+  );
+  const [quantity, setQuantity] = useState(
+    editEntry?.litres !== undefined
+      ? String(fuelQuantityToDisplay(editEntry.litres, unit, system))
+      : "8.6",
+  );
   const [price, setPrice] = useState("");
-  const [total, setTotal] = useState("920");
+  const [total, setTotal] = useState(
+    editEntry?.amount !== undefined ? String(editEntry.amount) : "920",
+  );
   const [fullTank, setFullTank] = useState(true);
-  const [station, setStation] = useState("");
-  const [notes, setNotes] = useState("");
+  const [station, setStation] = useState(editEntry?.note?.split(" · ")[0] ?? "");
+  const [notes, setNotes] = useState(editEntry?.note?.split(" · ")[1] ?? "");
 
   const derived = useMemo(() => {
     const q = Number(quantity);
@@ -68,11 +97,11 @@ function AddFuelPage() {
 
   const estimatedMileage = useMemo(() => {
     if (!vehicle) return null;
-    const qLitres = displayToLitres(Number(quantity), system);
+    const qty = displayToFuelQuantity(Number(quantity), unit, system);
     const oKm = displayToKm(Number(odometer), system);
-    if (!fullTank || !qLitres || oKm <= vehicle.odometer) return null;
-    return (oKm - vehicle.odometer) / qLitres;
-  }, [quantity, odometer, fullTank, vehicle, system]);
+    if (!fullTank || !qty || oKm <= vehicle.odometer) return null;
+    return (oKm - vehicle.odometer) / qty;
+  }, [quantity, odometer, fullTank, vehicle, system, unit]);
 
   if (!vehicle) {
     return (
@@ -85,7 +114,11 @@ function AddFuelPage() {
 
   return (
     <div className="mx-auto max-w-[520px]">
-      <PageHeader back={{ to: "/", label: "Garage" }} title="Add Fuel" className="mb-5" />
+      <PageHeader
+        back={{ to: "/", label: "Garage" }}
+        title={editEntry ? "Edit Fuel Entry" : "Add Fuel"}
+        className="mb-5"
+      />
 
       <SegmentedControl
         className="mb-7"
@@ -94,6 +127,20 @@ function AddFuelPage() {
         onChange={setVehicleId}
         options={vehicles.map((v) => ({ value: v.id, label: v.nickname }))}
       />
+
+      {isBiFuel && (
+        <div className="mb-5">
+          <SegmentedControl
+            size="sm"
+            value={fuelChoice}
+            onChange={setFuelChoice}
+            options={[
+              { value: "Petrol", label: "Petrol" },
+              { value: "CNG", label: "CNG" },
+            ]}
+          />
+        </div>
+      )}
 
       <FormGroup>
         <FormField label="Date">
@@ -106,19 +153,17 @@ function AddFuelPage() {
           <TextInput value={odometer} onChange={setOdometer} numeric suffix={distanceLabel} />
         </FormField>
         <FormField label="Quantity">
-          <TextInput value={quantity} onChange={setQuantity} numeric suffix={volumeLabel} />
+          <TextInput value={quantity} onChange={setQuantity} numeric suffix={unitLabel} />
         </FormField>
         <FormField
           label="Price"
-          hint={
-            derived ? `${money}${derived.unit.toFixed(2)}/${volumeLabel} calculated` : undefined
-          }
+          hint={derived ? `${money}${derived.unit.toFixed(2)}/${unitLabel} calculated` : undefined}
         >
           <TextInput
             value={price}
             onChange={setPrice}
             numeric
-            suffix={`${money}/${volumeLabel}`}
+            suffix={`${money}/${unitLabel}`}
             placeholder="-"
           />
         </FormField>
@@ -149,37 +194,55 @@ function AddFuelPage() {
         <PrimaryButton
           onClick={() => {
             const odometerKm = displayToKm(Number(odometer), system);
-            const quantityLitres = displayToLitres(Number(quantity), system);
-            if (!derived || !odometerKm || !quantityLitres) {
+            const storedQuantity = displayToFuelQuantity(Number(quantity), unit, system);
+            if (!derived || !odometerKm || !storedQuantity) {
               toast.error("Enter quantity, price or total, and odometer");
               return;
             }
 
-            garageStore.addTimelineEntry({
-              id: crypto.randomUUID(),
+            const payload = {
               vehicleId: vehicle.id,
-              kind: "fuel",
-              title: "Fuel",
+              kind: "fuel" as const,
+              title: isBiFuel ? `Fuel (${fuelChoice})` : "Fuel",
               date,
               odometer: Math.round(odometerKm),
-              litres: quantityLitres,
+              litres: storedQuantity,
+              fuelUnit: unit,
               amount: derived.total,
               ...((station || notes) && { note: [station, notes].filter(Boolean).join(" · ") }),
-            });
-            garageStore.updateVehicle(vehicle.id, {
-              odometer: Math.max(vehicle.odometer, Math.round(odometerKm)),
-            });
+            };
 
-            toast.success("Fuel entry saved", {
-              description: estimatedMileage
-                ? `Calculated mileage: ${formatMileage(estimatedMileage, system)}`
-                : "Add another full-tank entry to calculate mileage.",
-            });
+            if (editEntry) {
+              garageStore.updateTimelineEntry(editEntry.id, payload);
+              toast.success("Fuel entry updated");
+            } else {
+              garageStore.addTimelineEntry({ id: crypto.randomUUID(), ...payload });
+              garageStore.updateVehicle(vehicle.id, {
+                odometer: Math.max(vehicle.odometer, Math.round(odometerKm)),
+              });
+              toast.success("Fuel entry saved", {
+                description: estimatedMileage
+                  ? `Calculated mileage: ${formatEfficiency(estimatedMileage, unit, system)}`
+                  : "Add another full-tank entry to calculate mileage.",
+              });
+            }
             void navigate({ to: "/timeline" });
           }}
         >
-          Save Fuel Entry
+          {editEntry ? "Save Changes" : "Save Fuel Entry"}
         </PrimaryButton>
+        {editEntry && (
+          <SecondaryButton
+            className="mt-3"
+            onClick={() => {
+              garageStore.deleteTimelineEntry(editEntry.id);
+              toast.success("Fuel entry deleted");
+              void navigate({ to: "/timeline" });
+            }}
+          >
+            Delete Entry
+          </SecondaryButton>
+        )}
       </div>
     </div>
   );
