@@ -47,6 +47,45 @@ export function formatMileage(kmPerLitre: number, system: DistanceSystem) {
   return `${v.toFixed(1)} ${mileageUnitLabel(system)}`;
 }
 
+/**
+ * Petrol/diesel are measured in volume (litres/gallons), CNG in kg, and
+ * electric in kWh. kg and kWh have no metric/imperial variant, they're the
+ * same number worldwide, only the distance side of a ratio still converts.
+ */
+export type FuelUnit = "litres" | "kg" | "kwh";
+
+export function fuelUnitFor(fuelType: string): FuelUnit {
+  const f = fuelType.toLowerCase();
+  if (f.includes("electric")) return "kwh";
+  if (f.includes("cng")) return "kg";
+  return "litres";
+}
+
+export function fuelUnitLabel(unit: FuelUnit, system: DistanceSystem) {
+  return unit === "kg" ? "kg" : unit === "kwh" ? "kWh" : volumeUnitLabel(system);
+}
+
+/** Converts a stored (canonical) quantity to what the user should see/type. */
+export function fuelQuantityToDisplay(stored: number, unit: FuelUnit, system: DistanceSystem) {
+  return unit === "litres" ? litresToDisplay(stored, system) : stored;
+}
+
+export function displayToFuelQuantity(value: number, unit: FuelUnit, system: DistanceSystem) {
+  return unit === "litres" ? displayToLitres(value, system) : value;
+}
+
+export function formatFuelQuantity(stored: number, unit: FuelUnit, system: DistanceSystem) {
+  const v = fuelQuantityToDisplay(stored, unit, system);
+  return `${v.toFixed(2).replace(/\.00$/, "")} ${fuelUnitLabel(unit, system)}`;
+}
+
+/** km per unit of fuel, formatted for whichever fuel unit the entry used. */
+export function formatEfficiency(kmPerUnit: number, unit: FuelUnit, system: DistanceSystem) {
+  if (unit === "litres") return formatMileage(kmPerUnit, system);
+  const distancePerUnit = kmToDisplay(kmPerUnit, system);
+  return `${distancePerUnit.toFixed(1)} ${distanceUnitLabel(system)}/${fuelUnitLabel(unit, system)}`;
+}
+
 const CURRENCY_SYMBOLS: Record<Currency, string> = { INR: "₹", USD: "$", EUR: "€", GBP: "£" };
 
 export function currencySymbol(currency: Currency) {

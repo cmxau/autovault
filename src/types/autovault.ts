@@ -37,7 +37,10 @@ export type TimelineEntry = {
   title: string;
   date: string;
   odometer?: number;
+  /** Fuel quantity for `kind: "fuel"` entries, stored in the unit named by `fuelUnit`. */
   litres?: number;
+  /** Petrol/diesel are litres, CNG is kg, electric is kWh. Missing means litres (pre-existing entries). */
+  fuelUnit?: "litres" | "kg" | "kwh";
   amount?: number;
   note?: string;
 };
@@ -75,6 +78,7 @@ export type MaintenanceItem = {
 export type ChecklistKind =
   | "engine_oil"
   | "tyres"
+  | "tyre_pressure"
   | "brakes"
   | "battery"
   | "coolant"
@@ -90,6 +94,8 @@ export type ChecklistItem = {
   label: string;
   intervalKm?: number;
   intervalMonths?: number;
+  /** Day-granularity interval, for short cadences months can't express (e.g. every 14 days). */
+  intervalDays?: number;
   lastServicedDate?: string;
   lastServicedOdometer?: number;
 };

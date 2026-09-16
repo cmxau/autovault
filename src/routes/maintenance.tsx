@@ -8,7 +8,7 @@ import { useDocs, useChecklist } from "@/hooks/use-garage-data";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import { formatDistance } from "@/lib/units";
-import { computeHealth, computeMaintenanceItems, computeServiceStatus } from "@/lib/analytics";
+import { computeMaintenanceItems, computeServiceStatus } from "@/lib/analytics";
 import { VehicleNotesSection } from "@/components/autovault/vehicle-notes";
 import { ChecklistSection } from "@/components/autovault/checklist-section";
 
@@ -18,8 +18,7 @@ export const Route = createFileRoute("/maintenance")({
       { title: "Maintenance · AutoVault" },
       {
         name: "description",
-        content:
-          "Next service, maintenance item status and a record-based health summary for your vehicle.",
+        content: "Next service, checklist status and maintenance records for your vehicle.",
       },
       { property: "og:title", content: "Maintenance · AutoVault" },
       {
@@ -48,7 +47,6 @@ function MaintenancePage() {
   }
 
   const items = computeMaintenanceItems(vehicle, docs, system);
-  const health = computeHealth(vehicle, docs, checklist);
   const service = computeServiceStatus(vehicle, system);
 
   const serviceStart = vehicle.nextServiceKm - 10000;
@@ -97,25 +95,6 @@ function MaintenancePage() {
       <ChecklistSection vehicle={vehicle} checklist={checklist} />
 
       <VehicleNotesSection vehicle={vehicle} />
-
-      <section className="mt-8">
-        <SectionHeader title="Vehicle health" />
-        <div className="surface-tinted rounded-[18px] px-5 py-5">
-          <div className="flex items-end gap-3">
-            <p className="tnum text-[40px] font-semibold leading-none tracking-[-0.03em]">
-              {health}%
-            </p>
-            <p className="pb-1 text-[13px] text-muted-foreground">
-              Based on your maintenance records
-            </p>
-          </div>
-          <ProgressBar className="mt-4" value={health} tone={health < 60 ? "warn" : "ok"} />
-          <p className="mt-4 text-[12px] leading-relaxed text-muted-foreground">
-            AutoVault does not inspect your vehicle. This score reflects only the service due date
-            and document expiries you keep on record.
-          </p>
-        </div>
-      </section>
 
       <div className="mt-8">
         <SecondaryButton onClick={() => void navigate({ to: "/add/service" })}>

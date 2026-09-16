@@ -1,8 +1,11 @@
 import { useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Check } from "lucide-react";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
-import { FormField, FormGroup, TextInput, ChipGroup } from "@/components/autovault/form";
+import { FormField, FormGroup, TextInput } from "@/components/autovault/form";
+import { Row, RowGroup } from "@/components/autovault/row";
+import { BottomSheet } from "@/components/autovault/bottom-sheet";
 import { PrimaryButton } from "@/components/autovault/buttons";
 import { useGarage } from "@/hooks/use-garage";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
@@ -40,6 +43,8 @@ function AddDocumentPage() {
   const { vehicle } = useGarage();
   const navigate = useNavigate();
   const [category, setCategory] = useState("Insurance");
+  const [customCategory, setCustomCategory] = useState("");
+  const [typeSheetOpen, setTypeSheetOpen] = useState(false);
   const [issuer, setIssuer] = useState("");
   const [number, setNumber] = useState("");
   const [issued, setIssued] = useState("");
@@ -65,7 +70,26 @@ function AddDocumentPage() {
       />
 
       <SectionHeader title="Type" />
-      <ChipGroup options={categories} selected={[category]} onToggle={setCategory} />
+      <RowGroup>
+        <Row
+          title="Document type"
+          trailing={category === "Other" && customCategory.trim() ? customCategory : category}
+          onClick={() => setTypeSheetOpen(true)}
+        />
+      </RowGroup>
+      {category === "Other" && (
+        <div className="mt-3">
+          <FormGroup>
+            <FormField label="Name it">
+              <TextInput
+                value={customCategory}
+                onChange={setCustomCategory}
+                placeholder="e.g. Loan Papers"
+              />
+            </FormField>
+          </FormGroup>
+        </div>
+      )}
 
       <div className="mt-7">
         <SectionHeader title="Details" />
@@ -117,12 +141,14 @@ function AddDocumentPage() {
               toast.error("Enter a provider name and issue date");
               return;
             }
+            const finalCategory =
+              category === "Other" && customCategory.trim() ? customCategory.trim() : category;
 
             garageStore.addDoc({
               id: crypto.randomUUID(),
               vehicleId: vehicle.id,
-              category,
-              title: `${category} · ${issuer}`,
+              category: finalCategory,
+              title: `${finalCategory} · ${issuer}`,
               issuer,
               number,
               issued,
@@ -130,13 +156,40 @@ function AddDocumentPage() {
               hasFile: file !== null,
             });
 
-            toast.success("Document saved", { description: `${category} added to your glovebox.` });
+            toast.success("Document saved", {
+              description: `${finalCategory} added to your glovebox.`,
+            });
             void navigate({ to: "/glovebox" });
           }}
         >
           Save Document
         </PrimaryButton>
       </div>
+
+      <BottomSheet
+        open={typeSheetOpen}
+        onClose={() => setTypeSheetOpen(false)}
+        title="Document type"
+      >
+        <div className="flex flex-col gap-1.5">
+          {categories.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => {
+                setCategory(option);
+                setTypeSheetOpen(false);
+              }}
+              className="focus-ring flex min-h-[52px] items-center justify-between rounded-[14px] px-3.5 text-left transition-colors hover:bg-foreground/[0.05]"
+            >
+              <span className="text-[15px]">{option}</span>
+              {category === option && (
+                <Check className="size-[18px] text-primary" strokeWidth={2.2} />
+              )}
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
     </div>
   );
 }

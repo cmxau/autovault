@@ -11,7 +11,7 @@ import { MileageChart } from "@/components/insights/mileage-chart";
 import { useGarage } from "@/hooks/use-garage";
 import { useTimeline } from "@/hooks/use-garage-data";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
-import { formatCostPerDistance, formatMileage, formatMoney } from "@/lib/units";
+import { formatCostPerDistance, formatEfficiency, formatMoney, fuelUnitFor } from "@/lib/units";
 import {
   computeExpenseCategories,
   computeMileage,
@@ -46,7 +46,8 @@ function InsightsPage() {
   const { system, currency } = useUnitPrefs();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("mileage");
-  const [range, setRange] = useState<Range>("month");
+  const [range, setRange] = useState<Range>("3m");
+  const [fuelChoice, setFuelChoice] = useState<"Petrol" | "CNG">("Petrol");
   const now = new Date();
 
   if (!vehicle) {
@@ -58,7 +59,11 @@ function InsightsPage() {
     );
   }
 
-  const mileageStats = computeMileage(timeline, vehicle.id);
+  // A bi-fuel vehicle mixes litres and kg fills, which can't be averaged
+  // together, so mileage is shown per fuel, one at a time.
+  const isBiFuel = vehicle.fuel === "Petrol + CNG";
+  const mileageUnit = isBiFuel ? fuelUnitFor(fuelChoice) : fuelUnitFor(vehicle.fuel);
+  const mileageStats = computeMileage(timeline, vehicle.id, isBiFuel ? mileageUnit : undefined);
   const trend = mileageStats.trend;
   const categories = computeExpenseCategories(timeline, vehicle.id, range, now);
   const total = categories.reduce((sum, c) => sum + c.amount, 0);
@@ -78,40 +83,63 @@ function InsightsPage() {
       />
 
       {tab === "mileage" ? (
-        trend.length === 0 ? (
-          <EmptyState
-            icon={Droplets}
-            title="Start with your next fill-up."
-            description="Add two full-tank fuel entries and AutoVault can begin calculating your mileage."
-            action={
-              <PrimaryButton onClick={() => void navigate({ to: "/add/fuel" })}>
-                Add Fuel
-              </PrimaryButton>
-            }
-          />
-        ) : (
-          <>
-            <div className="surface-tinted rounded-[25px] px-5 pb-5 pt-6">
-              <p className="tnum text-[44px] font-semibold leading-none tracking-[-0.03em]">
-                {formatMileage(mileageStats.avg, system)}
-              </p>
-              <p className="mt-2 text-[13px] text-muted-foreground">
-                Average mileage · full-tank entries only
-              </p>
-              <MileageChart data={trend} />
-            </div>
-
-            <section className="mt-8">
-              <SectionHeader title="Range" />
-              <div className="surface-tinted grid grid-cols-2 gap-y-6 rounded-[18px] px-5 py-5 sm:grid-cols-4">
-                <Metric value={formatMileage(mileageStats.best, system)} label="Best" />
-                <Metric value={formatMileage(mileageStats.worst, system)} label="Worst" />
-                <Metric value={formatMileage(mileageStats.lastFill, system)} label="Last fill" />
-                <Metric value={String(trend.length)} label="Fill-ups tracked" />
+        <>
+          {isBiFuel && (
+            <SegmentedControl
+              className="mb-6 max-w-[280px]"
+              size="sm"
+              value={fuelChoice}
+              onChange={setFuelChoice}
+              options={[
+                { value: "Petrol", label: "Petrol" },
+                { value: "CNG", label: "CNG" },
+              ]}
+            />
+          )}
+          {trend.length === 0 ? (
+            <EmptyState
+              icon={Droplets}
+              title="Start with your next fill-up."
+              description="Add two full-tank fuel entries and AutoVault can begin calculating your mileage."
+              action={
+                <PrimaryButton onClick={() => void navigate({ to: "/add/fuel" })}>
+                  Add Fuel
+                </PrimaryButton>
+              }
+            />
+          ) : (
+            <>
+              <div className="surface-tinted rounded-[25px] px-5 pb-5 pt-6">
+                <p className="tnum text-[44px] font-semibold leading-none tracking-[-0.03em]">
+                  {formatEfficiency(mileageStats.avg, mileageUnit, system)}
+                </p>
+                <p className="mt-2 text-[13px] text-muted-foreground">
+                  Average mileage · full-tank entries only
+                </p>
+                <MileageChart data={trend} />
               </div>
-            </section>
-          </>
-        )
+
+              <section className="mt-8">
+                <SectionHeader title="Range" />
+                <div className="surface-tinted grid grid-cols-2 gap-y-6 rounded-[18px] px-5 py-5 sm:grid-cols-4">
+                  <Metric
+                    value={formatEfficiency(mileageStats.best, mileageUnit, system)}
+                    label="Best"
+                  />
+                  <Metric
+                    value={formatEfficiency(mileageStats.worst, mileageUnit, system)}
+                    label="Worst"
+                  />
+                  <Metric
+                    value={formatEfficiency(mileageStats.lastFill, mileageUnit, system)}
+                    label="Last fill"
+                  />
+                  <Metric value={String(trend.length)} label="Fill-ups tracked" />
+                </div>
+              </section>
+            </>
+          )}
+        </>
       ) : (
         <>
           <SegmentedControl
@@ -120,20 +148,15 @@ function InsightsPage() {
             value={range}
             onChange={setRange}
             options={[
-              { value: "month", label: "Month" },
-              { value: "6m", label: "6 Months" },
-              { value: "year", label: "Year" },
+              { value: "3m", label: "3 Month" },
+              { value: "6m", label: "6 Month" },
               { value: "all", label: "All Time" },
             ]}
           />
 
           <div className="surface-tinted rounded-[25px] px-5 py-6">
             <p className="text-[13px] text-muted-foreground">
-              {
-                { month: "This month", "6m": "Last 6 months", year: "This year", all: "All time" }[
-                  range
-                ]
-              }
+              {{ "3m": "Last 3 months", "6m": "Last 6 months", all: "All time" }[range]}
             </p>
             <p className="tnum mt-1.5 text-[40px] font-semibold leading-none tracking-[-0.03em]">
               {formatMoney(Math.round(total), currency)}

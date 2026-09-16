@@ -3,13 +3,17 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { ChipGroup, FormField, FormGroup, TextInput } from "@/components/autovault/form";
-import { PrimaryButton } from "@/components/autovault/buttons";
+import { PrimaryButton, SecondaryButton } from "@/components/autovault/buttons";
 import { useGarage } from "@/hooks/use-garage";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { currencySymbol } from "@/lib/units";
 import { garageStore } from "@/lib/store";
+import { useTimeline } from "@/hooks/use-garage-data";
 
 export const Route = createFileRoute("/add/expense")({
+  validateSearch: (search: Record<string, unknown>): { edit?: string } => ({
+    ...(typeof search["edit"] === "string" && { edit: search["edit"] }),
+  }),
   head: () => ({
     meta: [
       { title: "Add Expense · AutoVault" },
@@ -42,10 +46,15 @@ function AddExpensePage() {
   // in Settings only converts for viewing, it doesn't change what you type here.
   const money = currencySymbol("INR");
   const navigate = useNavigate();
-  const [category, setCategory] = useState("Tolls");
-  const [date, setDate] = useState("2026-08-05");
-  const [amount, setAmount] = useState("");
-  const [notes, setNotes] = useState("");
+  const { edit: editId } = Route.useSearch();
+  const timeline = useTimeline();
+  const editEntry = editId ? timeline.find((e) => e.id === editId) : undefined;
+  const [category, setCategory] = useState(editEntry?.title ?? "Tolls");
+  const [date, setDate] = useState(editEntry?.date ?? "2026-08-05");
+  const [amount, setAmount] = useState(
+    editEntry?.amount !== undefined ? String(editEntry.amount) : "",
+  );
+  const [notes, setNotes] = useState(editEntry?.note ?? "");
 
   if (!vehicle) {
     return (
@@ -65,7 +74,7 @@ function AddExpensePage() {
       <PageHeader
         back={{ to: "/insights", label: "Insights" }}
         eyebrow={vehicle.nickname}
-        title="Add Expense"
+        title={editEntry ? "Edit Expense" : "Add Expense"}
         className="mb-6"
       />
 
@@ -101,22 +110,39 @@ function AddExpensePage() {
               return;
             }
 
-            garageStore.addTimelineEntry({
-              id: crypto.randomUUID(),
+            const payload = {
               vehicleId: vehicle.id,
-              kind: "expense",
+              kind: "expense" as const,
               title: category,
               date,
               amount: amountNum,
               ...(notes && { note: notes }),
-            });
+            };
 
-            toast.success("Expense saved", { description: `${category} recorded.` });
+            if (editEntry) {
+              garageStore.updateTimelineEntry(editEntry.id, payload);
+              toast.success("Expense updated");
+            } else {
+              garageStore.addTimelineEntry({ id: crypto.randomUUID(), ...payload });
+              toast.success("Expense saved", { description: `${category} recorded.` });
+            }
             void navigate({ to: "/insights" });
           }}
         >
-          Save Expense
+          {editEntry ? "Save Changes" : "Save Expense"}
         </PrimaryButton>
+        {editEntry && (
+          <SecondaryButton
+            className="mt-3"
+            onClick={() => {
+              garageStore.deleteTimelineEntry(editEntry.id);
+              toast.success("Expense deleted");
+              void navigate({ to: "/insights" });
+            }}
+          >
+            Delete Entry
+          </SecondaryButton>
+        )}
       </div>
     </div>
   );

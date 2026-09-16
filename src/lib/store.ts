@@ -95,6 +95,15 @@ export const garageStore = {
   addTimelineEntry(entry: TimelineEntry) {
     setState({ ...state, timeline: [entry, ...state.timeline] });
   },
+  updateTimelineEntry(entryId: string, patch: Partial<TimelineEntry>) {
+    setState({
+      ...state,
+      timeline: state.timeline.map((e) => (e.id === entryId ? { ...e, ...patch } : e)),
+    });
+  },
+  deleteTimelineEntry(entryId: string) {
+    setState({ ...state, timeline: state.timeline.filter((e) => e.id !== entryId) });
+  },
   updateVehicle(vehicleId: string, patch: Partial<Vehicle>) {
     setState({
       ...state,

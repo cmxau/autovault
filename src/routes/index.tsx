@@ -7,15 +7,20 @@ import { Row, RowGroup } from "@/components/autovault/row";
 import { VehicleCarousel } from "@/components/vehicles/vehicle-carousel";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { useGarage } from "@/hooks/use-garage";
-import { useDocs, useTimeline, useChecklist } from "@/hooks/use-garage-data";
+import { useDocs, useTimeline } from "@/hooks/use-garage-data";
 import { useNotificationPrefs } from "@/hooks/use-notification-prefs";
 import { hasOnboarded } from "@/hooks/use-onboarding";
 import { greeting } from "@/lib/format";
 import { useProfileName } from "@/hooks/use-profile";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
-import { formatDistance, formatMileage, formatMoney, formatCostPerDistance } from "@/lib/units";
 import {
-  computeHealth,
+  formatDistance,
+  formatEfficiency,
+  formatMoney,
+  formatCostPerDistance,
+  fuelUnitFor,
+} from "@/lib/units";
+import {
   computeMileage,
   computeRunningCost,
   computeThisMonth,
@@ -47,7 +52,6 @@ function GaragePage() {
   const { vehicle } = useGarage();
   const timeline = useTimeline();
   const docs = useDocs();
-  const checklist = useChecklist();
   const reduce = useReducedMotion();
   const { system, currency } = useUnitPrefs();
   const { serviceReminders, expiryReminders } = useNotificationPrefs();
@@ -102,6 +106,8 @@ function GaragePage() {
     item.id === "service" ? serviceReminders : expiryReminders,
   );
   const mileageStats = computeMileage(timeline, vehicle.id);
+  // Bi-fuel vehicles mix units; this summary tile just shows the petrol side.
+  const primaryFuelUnit = vehicle.fuel === "Petrol + CNG" ? "litres" : fuelUnitFor(vehicle.fuel);
   const month = computeThisMonth(timeline, vehicle.id, now);
   const runningCost = computeRunningCost(timeline, vehicle.id);
 
@@ -158,7 +164,7 @@ function GaragePage() {
               className="sm:border-l"
             />
             <SummaryFigure
-              value={formatMileage(mileageStats.avg, system)}
+              value={formatEfficiency(mileageStats.avg, primaryFuelUnit, system)}
               label="Mileage"
               divided
             />
@@ -169,12 +175,7 @@ function GaragePage() {
       <section className="mt-9">
         <SectionHeader title="Vehicle" />
         <RowGroup>
-          <Row
-            title="Vehicle health"
-            detail="Based on your maintenance records"
-            trailing={`${computeHealth(vehicle, docs, checklist)}%`}
-            to="/maintenance"
-          />
+          <Row title="Maintenance" detail="Service, checklist and reminders" to="/maintenance" />
           <Row title="Glovebox" detail="RC, insurance, PUC and invoices" to="/glovebox" />
           <Row title="Timeline" detail="Full history of this vehicle" to="/timeline" />
         </RowGroup>

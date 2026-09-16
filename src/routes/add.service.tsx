@@ -4,15 +4,25 @@ import { Paperclip } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { ChipGroup, FormField, FormGroup, TextInput } from "@/components/autovault/form";
-import { PrimaryButton } from "@/components/autovault/buttons";
+import { PrimaryButton, SecondaryButton } from "@/components/autovault/buttons";
 import { Row, RowGroup } from "@/components/autovault/row";
 import { useGarage } from "@/hooks/use-garage";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
-import { currencySymbol, displayToKm, distanceUnitLabel, formatDistance } from "@/lib/units";
+import {
+  currencySymbol,
+  displayToKm,
+  distanceUnitLabel,
+  formatDistance,
+  kmToDisplay,
+} from "@/lib/units";
 import { garageStore } from "@/lib/store";
+import { useTimeline } from "@/hooks/use-garage-data";
 
 export const Route = createFileRoute("/add/service")({
+  validateSearch: (search: Record<string, unknown>): { edit?: string } => ({
+    ...(typeof search["edit"] === "string" && { edit: search["edit"] }),
+  }),
   head: () => ({
     meta: [
       { title: "Add Service · AutoVault" },
@@ -35,6 +45,8 @@ const work = [
   "Brake pads",
   "Wheel alignment",
   "Tyres",
+  "Tyre puncture repair",
+  "Tyre air pressure top-up",
   "Battery",
   "Other",
 ];
@@ -47,14 +59,23 @@ function AddServicePage() {
   // in Settings only converts for viewing, it doesn't change what you type here.
   const money = currencySymbol("INR");
   const navigate = useNavigate();
-  const [performed, setPerformed] = useState<string[]>(["Engine oil", "Oil filter"]);
+  const { edit: editId } = Route.useSearch();
+  const timeline = useTimeline();
+  const editEntry = editId ? timeline.find((e) => e.id === editId) : undefined;
+  const [notePerformed, noteCentre, noteNotes] = editEntry?.note?.split(" · ") ?? [];
+  const [performed, setPerformed] = useState<string[]>(
+    notePerformed ? notePerformed.split(", ") : ["Engine oil", "Oil filter"],
+  );
   const [form, setForm] = useState({
-    date: "2026-08-05",
-    odometer: String(vehicle?.odometer ?? 0),
-    centre: "",
-    type: "Periodic service",
-    cost: "",
-    notes: "",
+    date: editEntry?.date ?? "2026-08-05",
+    odometer:
+      editEntry?.odometer !== undefined
+        ? String(kmToDisplay(editEntry.odometer, system))
+        : String(vehicle?.odometer ?? 0),
+    centre: noteCentre ?? "",
+    type: editEntry?.title ?? "Periodic service",
+    cost: editEntry?.amount !== undefined ? String(editEntry.amount) : "",
+    notes: noteNotes ?? "",
     nextDate: "",
     nextOdometer: String(vehicle?.nextServiceKm ?? 0),
   });
@@ -83,7 +104,7 @@ function AddServicePage() {
       <PageHeader
         back={{ to: "/maintenance", label: "Maintenance" }}
         eyebrow={vehicle.nickname}
-        title="Add Service"
+        title={editEntry ? "Edit Service Record" : "Add Service"}
         className="mb-6"
       />
 
@@ -181,16 +202,24 @@ function AddServicePage() {
               return;
             }
 
-            garageStore.addTimelineEntry({
-              id: crypto.randomUUID(),
+            const payload = {
               vehicleId: vehicle.id,
-              kind: "service",
+              kind: "service" as const,
               title: form.type || "Service",
               date: form.date,
               odometer: odometerKm,
               ...(Number(form.cost) > 0 && { amount: Number(form.cost) }),
               note: [performed.join(", "), form.centre, form.notes].filter(Boolean).join(" · "),
-            });
+            };
+
+            if (editEntry) {
+              garageStore.updateTimelineEntry(editEntry.id, payload);
+              toast.success("Service record updated");
+              void navigate({ to: "/timeline" });
+              return;
+            }
+
+            garageStore.addTimelineEntry({ id: crypto.randomUUID(), ...payload });
             garageStore.updateVehicle(vehicle.id, {
               odometer: Math.max(vehicle.odometer, odometerKm),
               ...(nextOdometerKm > 0 && { nextServiceKm: nextOdometerKm }),
@@ -218,8 +247,20 @@ function AddServicePage() {
             void navigate({ to: "/timeline" });
           }}
         >
-          Save Service Record
+          {editEntry ? "Save Changes" : "Save Service Record"}
         </PrimaryButton>
+        {editEntry && (
+          <SecondaryButton
+            className="mt-3"
+            onClick={() => {
+              garageStore.deleteTimelineEntry(editEntry.id);
+              toast.success("Service record deleted");
+              void navigate({ to: "/timeline" });
+            }}
+          >
+            Delete Entry
+          </SecondaryButton>
+        )}
       </div>
     </div>
   );

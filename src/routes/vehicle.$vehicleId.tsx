@@ -16,16 +16,16 @@ import { maskReg } from "@/lib/format";
 import {
   formatCostPerDistance,
   formatDistance,
-  formatMileage,
+  formatEfficiency,
+  formatFuelQuantity,
   formatMoney,
-  formatVolume,
+  fuelUnitFor,
 } from "@/lib/units";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import { garageStore } from "@/lib/store";
 import { useDocs, useTimeline, useVehicles, useChecklist } from "@/hooks/use-garage-data";
 import {
   computeExpenseCategories,
-  computeHealth,
   computeMaintenanceItems,
   computeServiceStatus,
   computeMileage,
@@ -67,13 +67,14 @@ function VehicleDetailPage() {
 
   const now = new Date();
   const items = computeMaintenanceItems(vehicle, docs, system, checklist);
-  const health = computeHealth(vehicle, docs, checklist);
   const service = computeServiceStatus(vehicle, system);
   const mileageStats = computeMileage(timeline, vehicle.id);
+  // Bi-fuel vehicles mix units; these overview tiles just show the petrol side.
+  const primaryFuelUnit = vehicle.fuel === "Petrol + CNG" ? "litres" : fuelUnitFor(vehicle.fuel);
   const trend = mileageStats.trend;
   const month = computeThisMonth(timeline, vehicle.id, now);
   const runningCost = computeRunningCost(timeline, vehicle.id);
-  const categories = computeExpenseCategories(timeline, vehicle.id, "month", now);
+  const categories = computeExpenseCategories(timeline, vehicle.id, "3m", now);
   const total = categories.reduce((s, c) => s + c.amount, 0);
   const fuelEntries = timeline.filter((e) => e.vehicleId === vehicle.id && e.kind === "fuel");
   const vehicleDocs = docs.filter((d) => d.vehicleId === vehicle.id);
@@ -148,13 +149,16 @@ function VehicleDetailPage() {
             <SectionHeader title="Overview" />
             <RowGroup>
               <Row title="Current odometer" trailing={formatDistance(vehicle.odometer, system)} />
-              <Row title="Average mileage" trailing={formatMileage(mileageStats.avg, system)} />
+              <Row
+                title="Average mileage"
+                trailing={formatEfficiency(mileageStats.avg, primaryFuelUnit, system)}
+              />
               <Row title="Monthly distance" trailing={formatDistance(month.monthKm, system)} />
               <Row
                 title="Running cost"
                 trailing={formatCostPerDistance(runningCost, system, currency)}
               />
-              <Row title="Vehicle health" trailing={`${health}%`} to="/maintenance" />
+              <Row title="Maintenance" to="/maintenance" />
               <Row
                 title="Next service"
                 trailing={`${formatDistance(vehicle.nextServiceKm, system)} · ${vehicle.nextServiceDate}`}
@@ -227,7 +231,7 @@ function VehicleDetailPage() {
         <div className="space-y-7">
           <div className="surface-tinted rounded-[18px] px-5 pb-5 pt-5">
             <p className="tnum text-[32px] font-semibold leading-none tracking-[-0.025em]">
-              {formatMileage(mileageStats.avg, system)}
+              {formatEfficiency(mileageStats.avg, primaryFuelUnit, system)}
             </p>
             <p className="mt-1.5 text-[13px] text-muted-foreground">Average mileage</p>
             <MileageChart data={trend} />
@@ -242,7 +246,7 @@ function VehicleDetailPage() {
                   month: "short",
                   year: "numeric",
                 })}
-                detail={`${formatVolume(entry.litres ?? 0, system)} · ${formatDistance(entry.odometer ?? 0, system)}`}
+                detail={`${formatFuelQuantity(entry.litres ?? 0, entry.fuelUnit ?? "litres", system)} · ${formatDistance(entry.odometer ?? 0, system)}`}
                 trailing={formatMoney(entry.amount ?? 0, currency)}
               />
             ))}

@@ -7,18 +7,25 @@ import type {
   UpcomingItem,
   Vehicle,
 } from "@/types/autovault";
-import { formatDistance, type DistanceSystem } from "@/lib/units";
-import { monthsUntil } from "@/lib/format";
+import { formatDistance, type DistanceSystem, type FuelUnit } from "@/lib/units";
+import { monthsUntil, daysUntil } from "@/lib/format";
 
-export type Range = "month" | "6m" | "year" | "all";
+export type Range = "3m" | "6m" | "all";
 
 function ofVehicle<T extends { vehicleId: string }>(items: T[], vehicleId: string) {
   return items.filter((i) => i.vehicleId === vehicleId);
 }
 
-export function computeMileage(timeline: TimelineEntry[], vehicleId: string) {
+/**
+ * Mileage is a distance/quantity ratio, so entries filled with different
+ * fuels (a "Petrol + CNG" vehicle) can't be averaged together, kg and litres
+ * aren't comparable. Pass `unit` to compute stats for just one fuel; omit it
+ * for single-fuel vehicles where every fuel entry already shares a unit.
+ */
+export function computeMileage(timeline: TimelineEntry[], vehicleId: string, unit?: FuelUnit) {
   const fuel = ofVehicle(timeline, vehicleId)
     .filter((e) => e.kind === "fuel" && e.odometer !== undefined && e.litres)
+    .filter((e) => !unit || (e.fuelUnit ?? "litres") === unit)
     .sort((a, b) => (a.odometer ?? 0) - (b.odometer ?? 0));
 
   const points: { date: string; value: number }[] = [];
@@ -56,9 +63,8 @@ export function computeMileage(timeline: TimelineEntry[], vehicleId: string) {
 export function rangeWindow(range: Range, now: Date) {
   const to = now;
   const from = new Date(now);
-  if (range === "month") from.setMonth(from.getMonth() - 1);
+  if (range === "3m") from.setMonth(from.getMonth() - 3);
   else if (range === "6m") from.setMonth(from.getMonth() - 6);
-  else if (range === "year") from.setFullYear(from.getFullYear() - 1);
   else from.setFullYear(from.getFullYear() - 100);
   return { from, to };
 }
@@ -111,42 +117,32 @@ export function computeRunningCost(timeline: TimelineEntry[], vehicleId: string)
   return km > 0 ? totalCost / km : 0;
 }
 
-export function computeHealth(vehicle: Vehicle, docs: Doc[], checklist: ChecklistItem[] = []) {
-  let score = 100;
-  const remaining = vehicle.nextServiceKm - vehicle.odometer;
-  if (remaining < 0) score -= 30;
-  else if (remaining < 500) score -= 10;
-
-  for (const doc of ofVehicle(docs, vehicle.id)) {
-    if (doc.daysLeft === undefined) continue;
-    if (doc.daysLeft < 0) score -= 15;
-    else if (doc.daysLeft <= 30) score -= 5;
-  }
-
-  for (const item of ofVehicle(checklist, vehicle.id)) {
-    const status = computeChecklistStatus(item, vehicle).status;
-    if (status === "urgent") score -= 12;
-    else if (status === "warn") score -= 4;
-  }
-
-  return Math.max(0, Math.min(100, score));
-}
-
 /** Common trackable maintenance items with typical service intervals. */
 export const CHECKLIST_PRESETS: {
   kind: ChecklistItem["kind"];
   label: string;
   intervalKm?: number;
   intervalMonths?: number;
+  /** True when the interval should be chosen at add-time, not defaulted here. */
+  customInterval?: boolean;
 }[] = [
   { kind: "engine_oil", label: "Engine oil", intervalKm: 5000, intervalMonths: 6 },
   { kind: "tyres", label: "Tyres", intervalKm: 40000, intervalMonths: 60 },
+  { kind: "tyre_pressure", label: "Tyre air pressure", customInterval: true },
   { kind: "brakes", label: "Brake pads", intervalKm: 20000, intervalMonths: 24 },
   { kind: "battery", label: "Battery", intervalMonths: 24 },
   { kind: "coolant", label: "Coolant", intervalKm: 40000, intervalMonths: 24 },
   { kind: "brake_fluid", label: "Brake fluid", intervalKm: 20000, intervalMonths: 24 },
   { kind: "air_filter", label: "Air filter", intervalKm: 15000, intervalMonths: 12 },
 ];
+
+/** Quick-pick air pressure intervals, distance-based options differ by vehicle kind. */
+export const AIR_PRESSURE_KM_OPTIONS: Record<"motorcycle" | "scooter" | "car", number[]> = {
+  motorcycle: [100, 150],
+  scooter: [100, 150],
+  car: [300, 500],
+};
+export const AIR_PRESSURE_DAY_OPTIONS = [7, 14, 30];
 
 export function computeChecklistStatus(
   item: ChecklistItem,
@@ -156,6 +152,7 @@ export function computeChecklistStatus(
   const kmSince =
     item.lastServicedOdometer !== undefined ? vehicle.odometer - item.lastServicedOdometer : null;
   const monthsSince = item.lastServicedDate ? -(monthsUntil(item.lastServicedDate) ?? 0) : null;
+  const daysSince = item.lastServicedDate ? -daysUntil(item.lastServicedDate) : null;
 
   if (kmSince === null && monthsSince === null) {
     return { status: "unknown" as Status, detail: "Not yet logged" };
@@ -167,12 +164,17 @@ export function computeChecklistStatus(
     item.intervalMonths !== undefined && monthsSince !== null
       ? item.intervalMonths - monthsSince
       : null;
+  const daysRemaining =
+    item.intervalDays !== undefined && daysSince !== null ? item.intervalDays - daysSince : null;
 
   const overdue =
-    (kmRemaining !== null && kmRemaining < 0) || (monthsRemaining !== null && monthsRemaining < 0);
+    (kmRemaining !== null && kmRemaining < 0) ||
+    (monthsRemaining !== null && monthsRemaining < 0) ||
+    (daysRemaining !== null && daysRemaining < 0);
   const dueSoon =
     (kmRemaining !== null && kmRemaining < item.intervalKm! * 0.1) ||
-    (monthsRemaining !== null && monthsRemaining < 1);
+    (monthsRemaining !== null && monthsRemaining < 1) ||
+    (daysRemaining !== null && daysRemaining <= item.intervalDays! * 0.2);
 
   const status: Status = overdue ? "urgent" : dueSoon ? "warn" : "ok";
 
@@ -189,6 +191,11 @@ export function computeChecklistStatus(
       monthsRemaining < 0
         ? `${Math.abs(monthsRemaining)} mo overdue`
         : `${monthsRemaining} mo left`,
+    );
+  }
+  if (daysRemaining !== null) {
+    parts.push(
+      daysRemaining < 0 ? `${Math.abs(daysRemaining)} days overdue` : `${daysRemaining} days left`,
     );
   }
   return { status, detail: parts.join(" or ") || "On track" };
