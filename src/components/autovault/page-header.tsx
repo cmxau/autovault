@@ -15,7 +15,12 @@ export function PageHeader({
   title: string;
   subtitle?: ReactNode;
   action?: ReactNode;
-  back?: { to: string; label: string };
+  back?: {
+    to: string;
+    label: string;
+    params?: Record<string, string>;
+    search?: Record<string, string>;
+  };
   className?: string;
 }) {
   return (
@@ -23,6 +28,8 @@ export function PageHeader({
       {back && (
         <Link
           to={back.to}
+          {...(back.params && { params: back.params })}
+          {...(back.search && { search: back.search })}
           className="focus-ring -ml-1 mb-3 inline-flex min-h-11 items-center gap-1 rounded-[11px] pr-2 text-[15px] text-primary transition-opacity hover:opacity-70"
         >
           <ChevronLeft className="size-5" strokeWidth={1.75} />

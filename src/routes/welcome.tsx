@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "motion/react";
-import { KeyRound, Fuel, Wrench, BriefcaseBusiness, Bell, Smartphone } from "lucide-react";
+import { KeyRound, Smartphone } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { PrimaryButton, SecondaryButton } from "@/components/autovault/buttons";
 import { TextInput } from "@/components/autovault/form";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,7 @@ const screens = [
   },
 ];
 
-const icons = [Fuel, Wrench, BriefcaseBusiness, Bell];
+const icons = [appIcons.fuel, appIcons.service, appIcons.glovebox, appIcons.reminder];
 
 function WelcomePage() {
   const [index, setIndex] = useState(0);

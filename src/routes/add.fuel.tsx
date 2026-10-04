@@ -23,6 +23,7 @@ import {
 } from "@/lib/units";
 import { garageStore } from "@/lib/store";
 import { useTimeline } from "@/hooks/use-garage-data";
+import { todayISO } from "@/lib/format";
 
 export const Route = createFileRoute("/add/fuel")({
   validateSearch: (search: Record<string, unknown>): { edit?: string } => ({
@@ -67,7 +68,7 @@ function AddFuelPage() {
     (isBiFuel ? fuelUnitFor(fuelChoice) : fuelUnitFor(vehicle?.fuel ?? "Petrol"));
   const unitLabel = fuelUnitLabel(unit, system);
 
-  const [date, setDate] = useState(editEntry?.date ?? "2026-08-05");
+  const [date, setDate] = useState(editEntry?.date ?? todayISO());
   const [odometer, setOdometer] = useState(
     editEntry?.odometer !== undefined
       ? String(kmToDisplay(editEntry.odometer, system))

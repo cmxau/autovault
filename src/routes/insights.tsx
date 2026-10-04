@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Droplets } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { SegmentedControl } from "@/components/autovault/segmented-control";
 import { Metric, ProgressBar } from "@/components/autovault/metric";
@@ -73,7 +73,7 @@ function InsightsPage() {
       <PageHeader eyebrow={vehicle.nickname} title="Insights" />
 
       <SegmentedControl
-        className="mb-8 max-w-[320px]"
+        className="mx-auto mb-8 flex max-w-[320px]"
         value={tab}
         onChange={setTab}
         options={[
@@ -86,7 +86,7 @@ function InsightsPage() {
         <>
           {isBiFuel && (
             <SegmentedControl
-              className="mb-6 max-w-[280px]"
+              className="mx-auto mb-6 flex max-w-[280px]"
               size="sm"
               value={fuelChoice}
               onChange={setFuelChoice}
@@ -98,7 +98,7 @@ function InsightsPage() {
           )}
           {trend.length === 0 ? (
             <EmptyState
-              icon={Droplets}
+              icon={appIcons.mileage}
               title="Start with your next fill-up."
               description="Add two full-tank fuel entries and AutoVault can begin calculating your mileage."
               action={
@@ -116,7 +116,10 @@ function InsightsPage() {
                 <p className="mt-2 text-[13px] text-muted-foreground">
                   Average mileage · full-tank entries only
                 </p>
-                <MileageChart data={trend} />
+                <MileageChart
+                  data={trend}
+                  formatValue={(v) => formatEfficiency(v, mileageUnit, system)}
+                />
               </div>
 
               <section className="mt-8">
@@ -169,7 +172,7 @@ function InsightsPage() {
 
           {categories.length === 0 ? (
             <EmptyState
-              icon={Droplets}
+              icon={appIcons.expense}
               title="Nothing recorded in this range."
               description="Fuel, service and expense entries you add will show up here."
               action={

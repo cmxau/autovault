@@ -8,6 +8,7 @@ import { useGarage } from "@/hooks/use-garage";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import { displayToKm, distanceUnitLabel, formatDistance } from "@/lib/units";
+import { todayISO } from "@/lib/format";
 import { garageStore } from "@/lib/store";
 
 export const Route = createFileRoute("/add/odometer")({
@@ -30,7 +31,7 @@ function UpdateOdometerPage() {
   const { system } = useUnitPrefs();
   const distanceLabel = distanceUnitLabel(system);
   const navigate = useNavigate();
-  const [date, setDate] = useState("2026-08-05");
+  const [date, setDate] = useState(todayISO());
   const [reading, setReading] = useState(String(vehicle?.odometer ?? 0));
 
   const readingKm = displayToKm(Number(reading), system);

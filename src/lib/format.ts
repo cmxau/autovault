@@ -27,6 +27,12 @@ export const monthsUntil = (dateStr: string, from = new Date()): number | null =
   return months;
 };
 
+/** Today's date as YYYY-MM-DD in local time (not UTC, which toISOString uses). */
+export const todayISO = (d = new Date()) => {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
 export const maskReg = (reg: string) => {
   const parts = reg.split(" ");
   if (parts.length < 4) return reg;

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "motion/react";
-import { ShieldCheck, ChevronRight, Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { Row, RowGroup } from "@/components/autovault/row";
 import { VehicleCarousel } from "@/components/vehicles/vehicle-carousel";
@@ -18,7 +19,7 @@ import {
   formatEfficiency,
   formatMoney,
   formatCostPerDistance,
-  fuelUnitFor,
+  primaryFuelUnit as getPrimaryFuelUnit,
 } from "@/lib/units";
 import {
   computeMileage,
@@ -72,7 +73,7 @@ function GaragePage() {
       title="My Garage"
       subtitle={
         <span className="inline-flex items-center gap-1.5">
-          <ShieldCheck className="size-3.5 text-ok" strokeWidth={1.8} />
+          <appIcons.privacy className="size-3.5 text-ok" strokeWidth={1.8} />
           Stored on this device
         </span>
       }
@@ -107,7 +108,7 @@ function GaragePage() {
   );
   const mileageStats = computeMileage(timeline, vehicle.id);
   // Bi-fuel vehicles mix units; this summary tile just shows the petrol side.
-  const primaryFuelUnit = vehicle.fuel === "Petrol + CNG" ? "litres" : fuelUnitFor(vehicle.fuel);
+  const primaryFuelUnit = getPrimaryFuelUnit(vehicle.fuel);
   const month = computeThisMonth(timeline, vehicle.id, now);
   const runningCost = computeRunningCost(timeline, vehicle.id);
 
@@ -160,8 +161,7 @@ function GaragePage() {
             <SummaryFigure
               value={formatCostPerDistance(runningCost, system, currency)}
               label="Running cost"
-              divided
-              className="sm:border-l"
+              className="sm:border-l sm:border-hairline sm:pl-5"
             />
             <SummaryFigure
               value={formatEfficiency(mileageStats.avg, primaryFuelUnit, system)}
@@ -170,15 +170,6 @@ function GaragePage() {
             />
           </div>
         </div>
-      </section>
-
-      <section className="mt-9">
-        <SectionHeader title="Vehicle" />
-        <RowGroup>
-          <Row title="Maintenance" detail="Service, checklist and reminders" to="/maintenance" />
-          <Row title="Glovebox" detail="RC, insurance, PUC and invoices" to="/glovebox" />
-          <Row title="Timeline" detail="Full history of this vehicle" to="/timeline" />
-        </RowGroup>
       </section>
     </motion.div>
   );

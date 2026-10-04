@@ -6,6 +6,8 @@ import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { Row, RowGroup } from "@/components/autovault/row";
 import { garageStore } from "@/lib/store";
 import { useDocs } from "@/hooks/use-garage-data";
+import { configForCategory } from "@/lib/document-fields";
+import { currencySymbol } from "@/lib/units";
 
 export const Route = createFileRoute("/glovebox/$docId")({
   head: () => ({
@@ -38,11 +40,17 @@ function DocumentPage() {
   const doc = docs.find((d) => d.id === initialDoc.id) ?? initialDoc;
   const navigate = useNavigate();
   const replaceInputRef = useRef<HTMLInputElement>(null);
+  const config = configForCategory(doc.category);
 
   return (
     <div>
       <PageHeader
-        back={{ to: "/glovebox", label: "Glovebox" }}
+        back={{
+          to: "/vehicle/$vehicleId",
+          params: { vehicleId: doc.vehicleId },
+          search: { tab: "glovebox" },
+          label: "Glovebox",
+        }}
         eyebrow={doc.category}
         title={doc.issuer}
         subtitle={doc.expiry ? `Expires ${doc.expiry}` : `Issued ${doc.issued}`}
@@ -60,14 +68,28 @@ function DocumentPage() {
       <section className="mt-8">
         <SectionHeader title="Details" />
         <RowGroup>
-          <Row title="Provider" trailing={doc.issuer} />
-          <Row title="Number" trailing={doc.number} />
-          <Row title="Issue date" trailing={doc.issued} />
+          <Row title={config.provider.label} trailing={doc.issuer} />
+          {doc.number && <Row title={config.number.label} trailing={doc.number} />}
+          <Row title={config.issued.label} trailing={doc.issued} />
           {doc.expiry && (
             <Row
-              title="Expiry date"
+              title={config.expiry?.label ?? "Expires"}
               trailing={`${doc.expiry}${doc.daysLeft !== undefined && doc.daysLeft >= 0 ? ` · ${doc.daysLeft} days` : ""}`}
             />
+          )}
+          {config.extras.map(
+            (extra) =>
+              doc.details?.[extra.key] && (
+                <Row
+                  key={extra.key}
+                  title={extra.label}
+                  trailing={
+                    extra.type === "amount"
+                      ? `${currencySymbol("INR")}${doc.details[extra.key]}`
+                      : doc.details[extra.key]!
+                  }
+                />
+              ),
           )}
         </RowGroup>
       </section>
@@ -113,7 +135,11 @@ function DocumentPage() {
             onClick={() => {
               garageStore.deleteDoc(doc.id);
               toast.success("Document deleted", { description: "Removed from this device." });
-              void navigate({ to: "/glovebox" });
+              void navigate({
+                to: "/vehicle/$vehicleId",
+                params: { vehicleId: doc.vehicleId },
+                search: { tab: "glovebox" },
+              });
             }}
             className="text-urgent"
           />

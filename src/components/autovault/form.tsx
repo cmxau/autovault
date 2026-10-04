@@ -118,3 +118,48 @@ export function ChipGroup({
     </div>
   );
 }
+
+/** A label with a single-select row of small pills on the same line; tap a selected pill to clear it. */
+export function InlineChips({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="flex min-h-[54px] items-center gap-3 px-4 py-2.5">
+      <span className="shrink-0 text-[14.5px] text-muted-foreground">{label}</span>
+      <div
+        role="radiogroup"
+        aria-label={label}
+        className="ml-auto flex min-w-0 gap-1.5 overflow-x-auto [scrollbar-width:none]"
+      >
+        {options.map((option) => {
+          const active = value === option;
+          return (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onChange(active ? "" : option)}
+              className={cn(
+                "focus-ring min-h-9 shrink-0 whitespace-nowrap rounded-full border px-3 text-[13px] transition-colors",
+                active
+                  ? "border-primary/40 bg-primary/10 font-medium text-primary"
+                  : "border-hairline text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

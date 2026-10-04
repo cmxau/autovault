@@ -87,7 +87,7 @@ export function VehicleNotesSection({ vehicle }: { vehicle: Vehicle }) {
                 }}
                 className="focus-ring mt-0.5 text-muted-foreground/70 transition-colors hover:text-urgent"
               >
-                <Trash2 className="size-4" strokeWidth={1.6} />
+                <Trash2 className="size-[18px]" strokeWidth={1.75} />
               </button>
             </div>
           ))}

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Wrench, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { SectionHeader } from "@/components/autovault/page-header";
 import { Row, RowGroup } from "@/components/autovault/row";
 import { BottomSheet } from "@/components/autovault/bottom-sheet";
@@ -106,7 +107,7 @@ export function ChecklistSection({
               onClick={() => setAddSheetOpen(true)}
               className="focus-ring flex items-center gap-1 rounded-[10px] px-2 py-1 text-[13px] font-medium text-primary"
             >
-              <Plus className="size-4" strokeWidth={2} />
+              <Plus className="size-4" strokeWidth={2.2} />
               Add
             </button>
           )
@@ -128,7 +129,7 @@ export function ChecklistSection({
             return (
               <Row
                 key={item.id}
-                icon={Wrench}
+                icon={appIcons.service}
                 title={item.label}
                 detail={detail}
                 status={status}

@@ -1,16 +1,19 @@
 import { useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Check } from "lucide-react";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
-import { FormField, FormGroup, TextInput } from "@/components/autovault/form";
-import { Row, RowGroup } from "@/components/autovault/row";
-import { BottomSheet } from "@/components/autovault/bottom-sheet";
+import { FormField, FormGroup } from "@/components/autovault/form";
+import { DocumentForm } from "@/components/autovault/document-form";
 import { PrimaryButton } from "@/components/autovault/buttons";
 import { useGarage } from "@/hooks/use-garage";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { garageStore } from "@/lib/store";
-import { daysUntil } from "@/lib/format";
+import {
+  docFieldsFrom,
+  emptyDocForm,
+  validateDocForm,
+  type DocFormValue,
+} from "@/lib/document-fields";
 
 export const Route = createFileRoute("/glovebox/new")({
   head: () => ({
@@ -28,34 +31,18 @@ export const Route = createFileRoute("/glovebox/new")({
   component: AddDocumentPage,
 });
 
-const categories = [
-  "Registration (RC)",
-  "Insurance",
-  "PUC",
-  "Warranty",
-  "Roadside Assistance",
-  "Service Invoices",
-  "Purchase Documents",
-  "Other",
-];
-
 function AddDocumentPage() {
   const { vehicle } = useGarage();
   const navigate = useNavigate();
-  const [category, setCategory] = useState("Insurance");
-  const [customCategory, setCustomCategory] = useState("");
-  const [typeSheetOpen, setTypeSheetOpen] = useState(false);
-  const [issuer, setIssuer] = useState("");
-  const [number, setNumber] = useState("");
-  const [issued, setIssued] = useState("");
-  const [expiry, setExpiry] = useState("");
+  const [form, setForm] = useState<DocFormValue>(emptyDocForm());
+  const patchForm = (patch: Partial<DocFormValue>) => setForm((prev) => ({ ...prev, ...patch }));
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!vehicle) {
     return (
       <div>
-        <PageHeader back={{ to: "/glovebox", label: "Glovebox" }} title="Add Document" />
+        <PageHeader title="Add Document" />
         <NoVehicleEmptyState />
       </div>
     );
@@ -64,50 +51,17 @@ function AddDocumentPage() {
   return (
     <div>
       <PageHeader
-        back={{ to: "/glovebox", label: "Glovebox" }}
+        back={{
+          to: "/vehicle/$vehicleId",
+          params: { vehicleId: vehicle.id },
+          search: { tab: "glovebox" },
+          label: "Glovebox",
+        }}
         eyebrow={vehicle.nickname}
         title="Add Document"
       />
 
-      <SectionHeader title="Type" />
-      <RowGroup>
-        <Row
-          title="Document type"
-          trailing={category === "Other" && customCategory.trim() ? customCategory : category}
-          onClick={() => setTypeSheetOpen(true)}
-        />
-      </RowGroup>
-      {category === "Other" && (
-        <div className="mt-3">
-          <FormGroup>
-            <FormField label="Name it">
-              <TextInput
-                value={customCategory}
-                onChange={setCustomCategory}
-                placeholder="e.g. Loan Papers"
-              />
-            </FormField>
-          </FormGroup>
-        </div>
-      )}
-
-      <div className="mt-7">
-        <SectionHeader title="Details" />
-        <FormGroup>
-          <FormField label="Provider">
-            <TextInput value={issuer} onChange={setIssuer} placeholder="ICICI Lombard" />
-          </FormField>
-          <FormField label="Number">
-            <TextInput value={number} onChange={setNumber} placeholder="3005/AB/928471/26" />
-          </FormField>
-          <FormField label="Issued">
-            <TextInput value={issued} onChange={setIssued} type="date" />
-          </FormField>
-          <FormField label="Expires">
-            <TextInput value={expiry} onChange={setExpiry} type="date" />
-          </FormField>
-        </FormGroup>
-      </div>
+      <DocumentForm value={form} onChange={patchForm} />
 
       <div className="mt-7">
         <SectionHeader title="File" />
@@ -137,59 +91,33 @@ function AddDocumentPage() {
       <div className="mt-8">
         <PrimaryButton
           onClick={() => {
-            if (!issuer || !issued) {
-              toast.error("Enter a provider name and issue date");
+            const error = validateDocForm(form);
+            if (error) {
+              toast.error(error);
               return;
             }
-            const finalCategory =
-              category === "Other" && customCategory.trim() ? customCategory.trim() : category;
+            const fields = docFieldsFrom(form);
 
             garageStore.addDoc({
               id: crypto.randomUUID(),
               vehicleId: vehicle.id,
-              category: finalCategory,
-              title: `${finalCategory} · ${issuer}`,
-              issuer,
-              number,
-              issued,
-              ...(expiry && { expiry, daysLeft: daysUntil(expiry) }),
+              ...fields,
               hasFile: file !== null,
             });
 
             toast.success("Document saved", {
-              description: `${finalCategory} added to your glovebox.`,
+              description: `${fields.category} added to your glovebox.`,
             });
-            void navigate({ to: "/glovebox" });
+            void navigate({
+              to: "/vehicle/$vehicleId",
+              params: { vehicleId: vehicle.id },
+              search: { tab: "glovebox" },
+            });
           }}
         >
           Save Document
         </PrimaryButton>
       </div>
-
-      <BottomSheet
-        open={typeSheetOpen}
-        onClose={() => setTypeSheetOpen(false)}
-        title="Document type"
-      >
-        <div className="flex flex-col gap-1.5">
-          {categories.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => {
-                setCategory(option);
-                setTypeSheetOpen(false);
-              }}
-              className="focus-ring flex min-h-[52px] items-center justify-between rounded-[14px] px-3.5 text-left transition-colors hover:bg-foreground/[0.05]"
-            >
-              <span className="text-[15px]">{option}</span>
-              {category === option && (
-                <Check className="size-[18px] text-primary" strokeWidth={2.2} />
-              )}
-            </button>
-          ))}
-        </div>
-      </BottomSheet>
     </div>
   );
 }

@@ -1,14 +1,10 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  Car,
   Bell,
-  ShieldCheck,
   Sun,
   Moon,
   MonitorSmartphone,
-  BriefcaseBusiness,
-  Wrench,
   Check,
   Download,
   Bug,
@@ -22,7 +18,9 @@ import { SegmentedControl } from "@/components/autovault/segmented-control";
 import { FormField, FormGroup, TextInput, ToggleRow } from "@/components/autovault/form";
 import { PrimaryButton } from "@/components/autovault/buttons";
 import { BottomSheet } from "@/components/autovault/bottom-sheet";
-import { useTheme } from "@/hooks/use-theme";
+import { accents, useTheme } from "@/hooks/use-theme";
+import { cn } from "@/lib/utils";
+import { appIcons } from "@/lib/icons";
 import { useGarage } from "@/hooks/use-garage";
 import { useNotificationPrefs } from "@/hooks/use-notification-prefs";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
@@ -58,7 +56,7 @@ export const Route = createFileRoute("/settings")({
 
 function SettingsPage() {
   const { vehicles } = useGarage();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, accent, setAccent, customColor, setCustomColor } = useTheme();
   const {
     serviceReminders,
     expiryReminders,
@@ -108,16 +106,93 @@ function SettingsPage() {
         </section>
 
         <section>
+          <SectionHeader title="Appearance" />
+          <SegmentedControl
+            value={theme}
+            onChange={setTheme}
+            options={[
+              { value: "system", label: "System" },
+              { value: "light", label: "Light" },
+              { value: "dark", label: "Dark" },
+            ]}
+          />
+          <div
+            role="radiogroup"
+            aria-label="Accent colour"
+            className="surface-tinted mt-3 flex items-center justify-between gap-2 rounded-[18px] px-4 py-3"
+          >
+            <span className="text-[14.5px] text-muted-foreground">Accent</span>
+            <div className="flex items-center gap-1">
+              {accents.map((a) => (
+                <button
+                  key={a.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={accent === a.value}
+                  aria-label={a.label}
+                  onClick={() => setAccent(a.value)}
+                  className="focus-ring grid size-9 place-items-center rounded-full"
+                >
+                  <span
+                    className={cn(
+                      "size-6 rounded-full transition-shadow",
+                      accent === a.value &&
+                        "ring-2 ring-foreground/70 ring-offset-2 ring-offset-card",
+                    )}
+                    style={{ backgroundColor: a.swatch }}
+                  />
+                </button>
+              ))}
+              <label
+                aria-label="Custom colour"
+                className="focus-within:ring-ring relative grid size-9 cursor-pointer place-items-center rounded-full focus-within:ring-2"
+              >
+                <span
+                  className={cn(
+                    "size-6 rounded-full",
+                    accent === "custom"
+                      ? "ring-2 ring-foreground/70 ring-offset-2 ring-offset-card"
+                      : "border border-dashed border-muted-foreground/60",
+                  )}
+                  style={
+                    accent === "custom"
+                      ? { backgroundColor: customColor }
+                      : {
+                          background:
+                            "conic-gradient(#f43f5e, #f59e0b, #22c55e, #06b6d4, #6366f1, #f43f5e)",
+                        }
+                  }
+                />
+                <input
+                  type="color"
+                  value={customColor}
+                  onChange={(e) => setCustomColor(e.target.value)}
+                  className="absolute inset-0 size-full cursor-pointer opacity-0"
+                />
+              </label>
+            </div>
+          </div>
+          <div className="mt-3 flex items-center gap-4 px-1 text-[12px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <MonitorSmartphone className="size-3.5" strokeWidth={1.6} />
+              Follows your device
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Sun className="size-3.5" strokeWidth={1.6} />
+              <Moon className="size-3.5" strokeWidth={1.6} />
+            </span>
+          </div>
+        </section>
+
+        <section>
           <SectionHeader title="Garage" />
           <RowGroup>
             <Row
-              icon={Car}
+              icon={appIcons.vehicle}
               title="Manage vehicles"
               detail={`${vehicles.length} vehicles`}
               to="/vehicle"
             />
-            <Row icon={BriefcaseBusiness} title="Glovebox" to="/glovebox" />
-            <Row icon={Wrench} title="Maintenance" to="/maintenance" />
             <Row
               title="Units"
               trailing={system === "imperial" ? "Miles · Gallons" : "Kilometres · Litres"}
@@ -164,35 +239,12 @@ function SettingsPage() {
           <SectionHeader title="Data & Privacy" />
           <RowGroup>
             <Row
-              icon={ShieldCheck}
+              icon={appIcons.privacy}
               title="Data & Privacy"
               detail="Encryption, export, restore, CSV"
               to="/privacy"
             />
           </RowGroup>
-        </section>
-
-        <section>
-          <SectionHeader title="Appearance" />
-          <SegmentedControl
-            value={theme}
-            onChange={setTheme}
-            options={[
-              { value: "system", label: "System" },
-              { value: "light", label: "Light" },
-              { value: "dark", label: "Dark" },
-            ]}
-          />
-          <div className="mt-3 flex items-center gap-4 px-1 text-[12px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5">
-              <MonitorSmartphone className="size-3.5" strokeWidth={1.6} />
-              Follows your device
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Sun className="size-3.5" strokeWidth={1.6} />
-              <Moon className="size-3.5" strokeWidth={1.6} />
-            </span>
-          </div>
         </section>
 
         {!installed && (

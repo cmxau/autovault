@@ -181,7 +181,10 @@ function PrivacyPage() {
 
   return (
     <div>
-      <PageHeader title="Your garage never leaves your device." />
+      <PageHeader
+        title="Your garage never leaves your device."
+        back={{ to: "/settings", label: "Settings" }}
+      />
 
       <div className="surface-tinted flex items-start gap-3 rounded-[25px] px-5 py-5">
         <Smartphone className="mt-0.5 size-[17px] shrink-0 text-primary" strokeWidth={1.7} />
@@ -192,21 +195,40 @@ function PrivacyPage() {
       </div>
 
       <section className="mt-8">
-        <SectionHeader title="Security" />
-        <FormGroup>
-          <ToggleRow
-            label="Backup Encryption"
-            detail="Encrypt exported .autovault files with a passphrase"
-            checked={encryptBackup}
-            onChange={setEncryptBackup}
+        <SectionHeader title="Auto Backup" />
+        <RowGroup>
+          <Row
+            icon={FolderOpen}
+            title="Backup folder"
+            detail={
+              !fsSupported
+                ? "Not supported in this browser"
+                : folderConnected
+                  ? "Connected · AutoVault folder"
+                  : "Not set"
+            }
+            {...(fsSupported && {
+              onClick: folderConnected ? handleForgetFolder : handleChooseFolder,
+            })}
           />
-          <ToggleRow
-            label="Include document files"
-            detail="RC, insurance, invoices"
-            checked={includeDocuments}
-            onChange={setIncludeDocuments}
+          <Row
+            title="Frequency"
+            trailing={FREQUENCY_OPTIONS.find((f) => f.value === frequency)?.label}
+            onClick={() => setFrequencySheetOpen(true)}
           />
-        </FormGroup>
+        </RowGroup>
+
+        <div className="mt-4">
+          <PrimaryButton icon={Download} onClick={handleBackupNow}>
+            Back Up Now
+          </PrimaryButton>
+        </div>
+
+        <p className="mt-3 px-1 text-[12px] leading-relaxed text-muted-foreground">
+          {fsSupported
+            ? "Backups are saved into an AutoVault folder inside the location you choose. Scheduled backups run unencrypted so they can happen without a passphrase prompt; use Export above for an encrypted copy."
+            : "Automatic folder backups need Chrome, Edge or another Chromium browser on desktop. Use Export above to save a backup manually here."}
+        </p>
       </section>
 
       <section className="mt-8">
@@ -275,40 +297,21 @@ function PrivacyPage() {
       </section>
 
       <section className="mt-8">
-        <SectionHeader title="Auto Backup" />
-        <RowGroup>
-          <Row
-            icon={FolderOpen}
-            title="Backup folder"
-            detail={
-              !fsSupported
-                ? "Not supported in this browser"
-                : folderConnected
-                  ? "Connected · AutoVault folder"
-                  : "Not set"
-            }
-            {...(fsSupported && {
-              onClick: folderConnected ? handleForgetFolder : handleChooseFolder,
-            })}
+        <SectionHeader title="Security" />
+        <FormGroup>
+          <ToggleRow
+            label="Backup Encryption"
+            detail="Encrypt exported .autovault files with a passphrase"
+            checked={encryptBackup}
+            onChange={setEncryptBackup}
           />
-          <Row
-            title="Frequency"
-            trailing={FREQUENCY_OPTIONS.find((f) => f.value === frequency)?.label}
-            onClick={() => setFrequencySheetOpen(true)}
+          <ToggleRow
+            label="Include document files"
+            detail="RC, insurance, invoices"
+            checked={includeDocuments}
+            onChange={setIncludeDocuments}
           />
-        </RowGroup>
-
-        <div className="mt-4">
-          <PrimaryButton icon={Download} onClick={handleBackupNow}>
-            Back Up Now
-          </PrimaryButton>
-        </div>
-
-        <p className="mt-3 px-1 text-[12px] leading-relaxed text-muted-foreground">
-          {fsSupported
-            ? "Backups are saved into an AutoVault folder inside the location you choose. Scheduled backups run unencrypted so they can happen without a passphrase prompt; use Export above for an encrypted copy."
-            : "Automatic folder backups need Chrome, Edge or another Chromium browser on desktop. Use Export above to save a backup manually here."}
-        </p>
+        </FormGroup>
       </section>
 
       <PassphraseSheet

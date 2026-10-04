@@ -1,22 +1,24 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Bell, Check, PencilLine, Trash2 } from "lucide-react";
+import { Check, PencilLine, Trash2 } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { toast } from "sonner";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { StatusDot } from "@/components/autovault/status-indicator";
 import { SecondaryButton } from "@/components/autovault/buttons";
 import { PrimaryButton } from "@/components/autovault/buttons";
 import { BottomSheet } from "@/components/autovault/bottom-sheet";
-import { FormField, FormGroup, TextInput } from "@/components/autovault/form";
+import { ChipGroup, FormField, FormGroup, TextInput } from "@/components/autovault/form";
 import { useGarage } from "@/hooks/use-garage";
 import { useDocs } from "@/hooks/use-garage-data";
 import { useReminderLeads } from "@/hooks/use-reminder-leads";
 import { useNotificationPrefs } from "@/hooks/use-notification-prefs";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
-import { useCustomReminders } from "@/hooks/use-custom-reminders";
+import { nextDue, useCustomReminders, type Repeat } from "@/hooks/use-custom-reminders";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { computeUpcoming } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import type { Status } from "@/types/autovault";
 
 export const Route = createFileRoute("/reminders")({
   head: () => ({
@@ -38,6 +40,22 @@ export const Route = createFileRoute("/reminders")({
 });
 
 const leadOptions = [30, 7, 1];
+const repeatOptions = ["None", "Yearly", "Every N days"];
+
+function describeRepeat(repeat: Repeat | undefined, now: Date) {
+  const due = nextDue(repeat, now);
+  if (!repeat || !due) return null;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((due.getTime() - today.getTime()) / 86_400_000);
+  const when = due.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const cadence = repeat.kind === "yearly" ? "Yearly" : `Every ${repeat.every} days`;
+  const status: Status = days <= 7 ? "urgent" : days <= 30 ? "warn" : "ok";
+  return { text: `${cadence} · next ${when}`, status };
+}
 
 function RemindersPage() {
   const { vehicle } = useGarage();
@@ -55,11 +73,14 @@ function RemindersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [label, setLabel] = useState("");
   const [detail, setDetail] = useState("");
+  const [repeatKind, setRepeatKind] = useState("None");
+  const [repeatDate, setRepeatDate] = useState("");
+  const [repeatEvery, setRepeatEvery] = useState("");
 
   if (!vehicle) {
     return (
       <div>
-        <PageHeader title="Reminders" />
+        <PageHeader title="Reminders" back={{ to: "/settings", label: "Settings" }} />
         <NoVehicleEmptyState />
       </div>
     );
@@ -71,7 +92,11 @@ function RemindersPage() {
 
   return (
     <div>
-      <PageHeader eyebrow={vehicle.nickname} title="Reminders" />
+      <PageHeader
+        eyebrow={vehicle.nickname}
+        title="Reminders"
+        back={{ to: "/settings", label: "Settings" }}
+      />
 
       <div className="space-y-4">
         {derived.map((reminder) => {
@@ -86,7 +111,10 @@ function RemindersPage() {
                   </p>
                   <p className="tnum mt-1 text-[13px] text-muted-foreground">{reminder.detail}</p>
                 </div>
-                <Bell className="size-[17px] shrink-0 text-muted-foreground/70" strokeWidth={1.6} />
+                <appIcons.reminder
+                  className="size-[18px] shrink-0 text-muted-foreground/70"
+                  strokeWidth={1.75}
+                />
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2 border-t border-hairline pt-4">
@@ -117,14 +145,18 @@ function RemindersPage() {
 
         {custom.map((reminder) => {
           const selected = forId(reminder.id);
+          const schedule = describeRepeat(reminder.repeat, new Date());
           return (
             <article key={reminder.id} className="surface-tinted rounded-[18px] px-5 py-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="flex items-center gap-2 text-[15.5px] font-medium tracking-[-0.005em]">
-                    <StatusDot status="unknown" />
+                    <StatusDot status={schedule?.status ?? "unknown"} />
                     {reminder.label}
                   </p>
+                  {schedule && (
+                    <p className="tnum mt-1 text-[13px] text-muted-foreground">{schedule.text}</p>
+                  )}
                   {reminder.detail && (
                     <p className="tnum mt-1 text-[13px] text-muted-foreground">{reminder.detail}</p>
                   )}
@@ -137,11 +169,22 @@ function RemindersPage() {
                       setEditingId(reminder.id);
                       setLabel(reminder.label);
                       setDetail(reminder.detail);
+                      setRepeatKind(
+                        reminder.repeat
+                          ? reminder.repeat.kind === "yearly"
+                            ? "Yearly"
+                            : "Every N days"
+                          : "None",
+                      );
+                      setRepeatDate(reminder.repeat?.date ?? "");
+                      setRepeatEvery(
+                        reminder.repeat?.kind === "days" ? String(reminder.repeat.every) : "",
+                      );
                       setAddOpen(true);
                     }}
                     className="focus-ring text-muted-foreground/70 transition-colors hover:text-primary"
                   >
-                    <PencilLine className="size-[17px]" strokeWidth={1.6} />
+                    <PencilLine className="size-[18px]" strokeWidth={1.75} />
                   </button>
                   <button
                     type="button"
@@ -152,7 +195,7 @@ function RemindersPage() {
                     }}
                     className="focus-ring text-muted-foreground/70 transition-colors hover:text-urgent"
                   >
-                    <Trash2 className="size-[17px]" strokeWidth={1.6} />
+                    <Trash2 className="size-[18px]" strokeWidth={1.75} />
                   </button>
                 </div>
               </div>
@@ -191,6 +234,9 @@ function RemindersPage() {
             setEditingId(null);
             setLabel("");
             setDetail("");
+            setRepeatKind("None");
+            setRepeatDate("");
+            setRepeatEvery("");
             setAddOpen(true);
           }}
         >
@@ -198,7 +244,7 @@ function RemindersPage() {
         </SecondaryButton>
         <p className="mt-3 px-1 text-[12px] leading-relaxed text-muted-foreground">
           Service and document reminders above are generated from your records. Custom reminders are
-          a plain note you set the lead time on.
+          a note you can set to repeat yearly or every N days.
         </p>
       </section>
 
@@ -214,27 +260,66 @@ function RemindersPage() {
         <div className="space-y-4">
           <FormGroup>
             <FormField label="Title">
-              <TextInput value={label} onChange={setLabel} placeholder="Tyre rotation" />
+              <TextInput value={label} onChange={setLabel} placeholder="Tyre pressure check" />
             </FormField>
             <FormField label="Note">
-              <TextInput value={detail} onChange={setDetail} placeholder="Every 10,000 km" />
+              <TextInput value={detail} onChange={setDetail} placeholder="Check all four tyres" />
             </FormField>
           </FormGroup>
+          <ChipGroup options={repeatOptions} selected={[repeatKind]} onToggle={setRepeatKind} />
+          {repeatKind !== "None" && (
+            <FormGroup>
+              <FormField label={repeatKind === "Yearly" ? "Due date" : "Starting"}>
+                <TextInput type="date" value={repeatDate} onChange={setRepeatDate} />
+              </FormField>
+              {repeatKind === "Every N days" && (
+                <FormField label="Repeat every">
+                  <TextInput
+                    numeric
+                    value={repeatEvery}
+                    onChange={setRepeatEvery}
+                    placeholder="30"
+                    suffix="days"
+                  />
+                </FormField>
+              )}
+            </FormGroup>
+          )}
           <PrimaryButton
             onClick={() => {
               if (!label.trim()) {
                 toast.error("Enter a title");
                 return;
               }
+              let repeat: Repeat | undefined;
+              if (repeatKind !== "None") {
+                const every = Math.floor(Number(repeatEvery));
+                if (!repeatDate) {
+                  toast.error("Pick a date");
+                  return;
+                }
+                if (repeatKind === "Every N days") {
+                  if (!(every >= 1)) {
+                    toast.error("Enter a number of days");
+                    return;
+                  }
+                  repeat = { kind: "days", date: repeatDate, every };
+                } else {
+                  repeat = { kind: "yearly", date: repeatDate };
+                }
+              }
               if (editingId) {
-                updateCustom(editingId, label.trim(), detail.trim());
+                updateCustom(editingId, label.trim(), detail.trim(), repeat);
                 toast.success("Reminder updated");
               } else {
-                addCustom(label.trim(), detail.trim());
+                addCustom(label.trim(), detail.trim(), repeat);
                 toast.success("Reminder added");
               }
               setLabel("");
               setDetail("");
+              setRepeatKind("None");
+              setRepeatDate("");
+              setRepeatEvery("");
               setEditingId(null);
               setAddOpen(false);
             }}

@@ -1,23 +1,24 @@
 import { motion, useReducedMotion } from "motion/react";
 import { Link } from "@tanstack/react-router";
-import { Fuel, Wrench, FileText, Receipt, Gauge, PencilLine } from "lucide-react";
+import { PencilLine, type LucideIcon } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { formatDistance, formatFuelQuantity, formatMoney } from "@/lib/units";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import type { TimelineEntry, TimelineKind } from "@/types/autovault";
 
-const meta: Record<TimelineKind, { icon: typeof Fuel; tint: string }> = {
-  fuel: { icon: Fuel, tint: "text-primary bg-primary/10" },
-  service: { icon: Wrench, tint: "text-warn bg-warn/12" },
-  document: { icon: FileText, tint: "text-ok bg-ok/12" },
-  expense: { icon: Receipt, tint: "text-foreground/70 bg-foreground/[0.06]" },
-  odometer: { icon: Gauge, tint: "text-foreground/70 bg-foreground/[0.06]" },
+const meta: Record<TimelineKind, { icon: LucideIcon; tint: string }> = {
+  fuel: { icon: appIcons.fuel, tint: "text-primary bg-primary/10" },
+  service: { icon: appIcons.service, tint: "text-warn bg-warn/12" },
+  document: { icon: appIcons.document, tint: "text-ok bg-ok/12" },
+  expense: { icon: appIcons.expense, tint: "text-foreground/70 bg-foreground/[0.06]" },
+  odometer: { icon: appIcons.odometer, tint: "text-foreground/70 bg-foreground/[0.06]" },
 };
 
 // Only these kinds have an add/edit form to route back into.
 const EDIT_ROUTES: Partial<Record<TimelineKind, string>> = {
   fuel: "/add/fuel",
-  service: "/add/service",
+  service: "/add/expense",
   expense: "/add/expense",
 };
 

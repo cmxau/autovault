@@ -1,12 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Search as SearchIcon,
-  Car,
-  ClipboardList,
-  BriefcaseBusiness,
-  NotebookPen,
-} from "lucide-react";
+import { Search as SearchIcon, NotebookPen } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { PageHeader, SectionHeader } from "@/components/autovault/page-header";
 import { Row, RowGroup } from "@/components/autovault/row";
 import { EmptyState } from "@/components/autovault/empty-state";
@@ -97,7 +92,7 @@ function SearchPage() {
             {results.vehicleMatches.map((v) => (
               <Row
                 key={v.id}
-                icon={Car}
+                icon={appIcons.vehicle}
                 title={v.nickname}
                 detail={`${v.year} ${v.make} ${v.model}`}
                 to="/vehicle/$vehicleId"
@@ -115,7 +110,7 @@ function SearchPage() {
             {results.timelineMatches.map((e) => (
               <Row
                 key={e.id}
-                icon={ClipboardList}
+                icon={appIcons.timeline}
                 title={e.title}
                 detail={`${nicknameFor(e.vehicleId)} · ${e.date}`}
                 to="/vehicle/$vehicleId"
@@ -133,7 +128,7 @@ function SearchPage() {
             {results.docMatches.map((d) => (
               <Row
                 key={d.id}
-                icon={BriefcaseBusiness}
+                icon={appIcons.document}
                 title={d.title}
                 detail={`${nicknameFor(d.vehicleId)} · ${d.issuer}`}
                 to="/glovebox/$docId"

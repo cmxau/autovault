@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ClipboardList } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { PageHeader } from "@/components/autovault/page-header";
 import { SegmentedControl } from "@/components/autovault/segmented-control";
 import { EmptyState } from "@/components/autovault/empty-state";
@@ -54,6 +54,20 @@ function TimelinePage() {
     return [...map.entries()];
   }, [timeline, vehicle, filter]);
 
+  // The empty-state button opens the form that matches the active filter.
+  const addEntry = () => {
+    switch (filter) {
+      case "document":
+        return void navigate({ to: "/glovebox/new" });
+      case "expense":
+        return void navigate({ to: "/add/expense" });
+      case "service":
+        return void navigate({ to: "/add/expense", search: { category: "Service" } });
+      default:
+        return void navigate({ to: "/add/fuel" });
+    }
+  };
+
   if (!vehicle) {
     return (
       <div>
@@ -83,14 +97,10 @@ function TimelinePage() {
 
       {groups.length === 0 ? (
         <EmptyState
-          icon={ClipboardList}
+          icon={appIcons.timeline}
           title="Nothing recorded yet."
           description="Fuel fills, services, documents and expenses you add will appear here as your vehicle's history."
-          action={
-            <PrimaryButton onClick={() => void navigate({ to: "/add/fuel" })}>
-              Add Entry
-            </PrimaryButton>
-          }
+          action={<PrimaryButton onClick={addEntry}>Add Entry</PrimaryButton>}
         />
       ) : (
         <div className="space-y-8">

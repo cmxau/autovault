@@ -1,18 +1,27 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Fuel, Wrench, Receipt, Gauge, FileText } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { motion } from "motion/react";
 import { BottomSheet } from "@/components/autovault/bottom-sheet";
 import { usePress } from "@/lib/motion";
 
 const actions = [
-  { label: "Add Fuel", detail: "Litres, price and odometer", icon: Fuel, to: "/add/fuel" },
-  { label: "Add Service", detail: "Work performed and cost", icon: Wrench, to: "/add/service" },
-  { label: "Add Expense", detail: "Tolls, parking, repairs", icon: Receipt, to: "/add/expense" },
-  { label: "Update Odometer", detail: "Keep distance accurate", icon: Gauge, to: "/add/odometer" },
+  { label: "Add Fuel", detail: "Litres, price and odometer", icon: appIcons.fuel, to: "/add/fuel" },
+  {
+    label: "Add Expense",
+    detail: "Service, tolls, parking, repairs",
+    icon: appIcons.expense,
+    to: "/add/expense",
+  },
+  {
+    label: "Update Odometer",
+    detail: "Keep distance accurate",
+    icon: appIcons.odometer,
+    to: "/add/odometer",
+  },
   {
     label: "Add Document",
     detail: "Store it in the glovebox",
-    icon: FileText,
+    icon: appIcons.document,
     to: "/glovebox/new",
   },
 ] as const;

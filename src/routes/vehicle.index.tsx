@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Car, Plus, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { PageHeader } from "@/components/autovault/page-header";
 import { EmptyState } from "@/components/autovault/empty-state";
-import { PrimaryButton } from "@/components/autovault/buttons";
+import { PrimaryButton, SecondaryButton } from "@/components/autovault/buttons";
+import { BottomSheet } from "@/components/autovault/bottom-sheet";
+import { toast } from "sonner";
 import { useGarage } from "@/hooks/use-garage";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import { formatDistance } from "@/lib/units";
@@ -30,6 +34,7 @@ function moveVehicle(vehicles: Vehicle[], index: number, direction: -1 | 1) {
 function ManageVehiclesPage() {
   const { vehicles } = useGarage();
   const { system } = useUnitPrefs();
+  const [pendingDelete, setPendingDelete] = useState<Vehicle | null>(null);
 
   return (
     <div>
@@ -49,7 +54,7 @@ function ManageVehiclesPage() {
 
       {vehicles.length === 0 ? (
         <EmptyState
-          icon={Car}
+          icon={appIcons.vehicle}
           title="No vehicles yet."
           description="Add your first vehicle to your garage."
           action={
@@ -107,15 +112,44 @@ function ManageVehiclesPage() {
                   </button>
                 </div>
               )}
+              <button
+                type="button"
+                aria-label={`Remove ${vehicle.nickname}`}
+                onClick={() => setPendingDelete(vehicle)}
+                className="focus-ring grid size-11 shrink-0 place-items-center rounded-full text-urgent transition-colors hover:bg-urgent/10"
+              >
+                <Trash2 className="size-[18px]" strokeWidth={1.75} />
+              </button>
             </div>
           ))}
         </div>
       )}
 
       <p className="mt-6 px-1 text-[12px] leading-relaxed text-muted-foreground">
-        Tap a vehicle to view it, edit its details, or remove it. Use the arrows to reorder how
+        Tap a vehicle to view or edit it, or use the bin to remove it. Use the arrows to reorder how
         vehicles appear on the Garage tab.
       </p>
+
+      <BottomSheet
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        title="Remove this vehicle?"
+        description={`${pendingDelete?.nickname ?? "This vehicle"} and its fuel, service, expense and document history will be deleted from this device.`}
+      >
+        <div className="space-y-3">
+          <PrimaryButton
+            className="bg-urgent hover:bg-urgent/90"
+            onClick={() => {
+              if (pendingDelete) garageStore.deleteVehicle(pendingDelete.id);
+              setPendingDelete(null);
+              toast.success("Vehicle removed");
+            }}
+          >
+            Remove Vehicle
+          </PrimaryButton>
+          <SecondaryButton onClick={() => setPendingDelete(null)}>Cancel</SecondaryButton>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

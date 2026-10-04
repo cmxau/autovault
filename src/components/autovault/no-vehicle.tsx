@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Car } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { EmptyState } from "@/components/autovault/empty-state";
 import { PrimaryButton } from "@/components/autovault/buttons";
 
@@ -11,7 +11,7 @@ export function NoVehicleEmptyState({
   const navigate = useNavigate();
   return (
     <EmptyState
-      icon={Car}
+      icon={appIcons.vehicle}
       title="No vehicle yet."
       description={description}
       action={

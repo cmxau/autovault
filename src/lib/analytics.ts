@@ -136,6 +136,31 @@ export const CHECKLIST_PRESETS: {
   { kind: "air_filter", label: "Air filter", intervalKm: 15000, intervalMonths: 12 },
 ];
 
+/** Service-form work items that count as servicing a checklist item. */
+const WORK_TO_CHECKLIST_KIND: Record<string, ChecklistItem["kind"]> = {
+  "Engine oil": "engine_oil",
+  "Air filter": "air_filter",
+  "Brake pads": "brakes",
+  Tyres: "tyres",
+  "Tyre air pressure top-up": "tyre_pressure",
+  Battery: "battery",
+};
+
+/**
+ * Checklist items covered by a service's work list, either via the known work→kind
+ * mapping or because a custom work item is named like the checklist item.
+ * Items already serviced on a later date are left alone.
+ */
+export function checklistItemsServiced(work: string[], items: ChecklistItem[], date: string) {
+  const names = new Set(work.map((w) => w.trim().toLowerCase()));
+  const kinds = new Set(work.map((w) => WORK_TO_CHECKLIST_KIND[w]).filter(Boolean));
+  return items.filter(
+    (item) =>
+      (kinds.has(item.kind) || names.has(item.label.toLowerCase())) &&
+      (!item.lastServicedDate || item.lastServicedDate <= date),
+  );
+}
+
 /** Quick-pick air pressure intervals, distance-based options differ by vehicle kind. */
 export const AIR_PRESSURE_KM_OPTIONS: Record<"motorcycle" | "scooter" | "car", number[]> = {
   motorcycle: [100, 150],
@@ -229,6 +254,24 @@ export function computeServiceStatus(vehicle: Vehicle, system: DistanceSystem = 
   };
 }
 
+function docExpiryStatus(doc: Doc): { status: Status; detail: string } {
+  if (!doc.expiry) return { status: "unknown", detail: "No expiry date set" };
+  const status: Status =
+    doc.daysLeft !== undefined && doc.daysLeft < 0
+      ? "urgent"
+      : doc.daysLeft !== undefined && doc.daysLeft <= 30
+        ? "warn"
+        : "ok";
+  const detail =
+    doc.daysLeft !== undefined && doc.daysLeft < 0
+      ? `Expired ${doc.expiry}`
+      : `Expires ${doc.expiry}`;
+  return { status, detail };
+}
+
+/** Legally time-critical documents, always shown so their absence is visible too. */
+const COMPLIANCE_CATEGORIES = ["Insurance", "PUC"];
+
 export function computeMaintenanceItems(
   vehicle: Vehicle,
   docs: Doc[],
@@ -250,22 +293,25 @@ export function computeMaintenanceItems(
     items.push({ id: item.id, label: item.label, status, detail });
   }
 
-  for (const doc of ofVehicle(docs, vehicle.id).filter((d) => d.expiry)) {
-    const status: Status =
-      doc.daysLeft !== undefined && doc.daysLeft < 0
-        ? "urgent"
-        : doc.daysLeft !== undefined && doc.daysLeft <= 30
-          ? "warn"
-          : "ok";
-    items.push({
-      id: doc.id,
-      label: doc.category,
-      status,
-      detail:
-        doc.daysLeft !== undefined && doc.daysLeft < 0
-          ? `Expired ${doc.expiry}`
-          : `Expires ${doc.expiry}`,
-    });
+  const vehicleDocs = ofVehicle(docs, vehicle.id);
+  for (const category of COMPLIANCE_CATEGORIES) {
+    const doc = vehicleDocs.find((d) => d.category === category);
+    items.push(
+      doc
+        ? { id: doc.id, label: category, ...docExpiryStatus(doc) }
+        : {
+            id: `compliance-${category}`,
+            label: category,
+            status: "unknown",
+            detail: "Not added yet",
+          },
+    );
+  }
+
+  for (const doc of vehicleDocs.filter(
+    (d) => d.expiry && !COMPLIANCE_CATEGORIES.includes(d.category),
+  )) {
+    items.push({ id: doc.id, label: doc.category, ...docExpiryStatus(doc) });
   }
   return items;
 }

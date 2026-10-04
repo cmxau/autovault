@@ -1,12 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Car, ClipboardList, Plus, ChartNoAxesColumn, Settings } from "lucide-react";
+import { Plus, ChartNoAxesColumn, Settings, type LucideIcon } from "lucide-react";
+import { appIcons } from "@/lib/icons";
 import { spring, usePress } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export const primaryDestinations = [
-  { to: "/", label: "Garage", icon: Car },
-  { to: "/timeline", label: "Timeline", icon: ClipboardList },
+  { to: "/", label: "Garage", icon: appIcons.vehicle },
+  { to: "/timeline", label: "Timeline", icon: appIcons.timeline },
   { to: "/insights", label: "Insights", icon: ChartNoAxesColumn },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
@@ -22,7 +23,7 @@ export function BottomNavigation({ onAdd }: { onAdd: () => void }) {
   const left = primaryDestinations.slice(0, 2);
   const right = primaryDestinations.slice(2);
 
-  const item = (dest: { to: string; label: string; icon: typeof Car }) => {
+  const item = (dest: { to: string; label: string; icon: LucideIcon }) => {
     const active = dest.to === "/" ? pathname === "/" : pathname.startsWith(dest.to);
     return (
       <Link

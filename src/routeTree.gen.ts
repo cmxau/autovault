@@ -23,8 +23,6 @@ import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AddExpenseRouteImport } from './routes/add.expense'
 import { Route as AddFuelRouteImport } from './routes/add.fuel'
 import { Route as AddOdometerRouteImport } from './routes/add.odometer'
-import { Route as AddServiceRouteImport } from './routes/add.service'
-import { Route as GloveboxIndexRouteImport } from './routes/glovebox.index'
 import { Route as GloveboxDocIdRouteImport } from './routes/glovebox.$docId'
 import { Route as GloveboxNewRouteImport } from './routes/glovebox.new'
 import { Route as VehicleIndexRouteImport } from './routes/vehicle.index'
@@ -103,16 +101,6 @@ const AddOdometerRoute = AddOdometerRouteImport.update({
   path: '/add/odometer',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AddServiceRoute = AddServiceRouteImport.update({
-  id: '/add/service',
-  path: '/add/service',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GloveboxIndexRoute = GloveboxIndexRouteImport.update({
-  id: '/glovebox/',
-  path: '/glovebox/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GloveboxDocIdRoute = GloveboxDocIdRouteImport.update({
   id: '/glovebox/$docId',
   path: '/glovebox/$docId',
@@ -164,12 +152,10 @@ export interface FileRoutesByFullPath {
   '/add/expense': typeof AddExpenseRoute
   '/add/fuel': typeof AddFuelRoute
   '/add/odometer': typeof AddOdometerRoute
-  '/add/service': typeof AddServiceRoute
   '/glovebox/$docId': typeof GloveboxDocIdRouteWithChildren
   '/glovebox/new': typeof GloveboxNewRoute
   '/vehicle/$vehicleId': typeof VehicleVehicleIdRoute
   '/vehicle/new': typeof VehicleNewRoute
-  '/glovebox/': typeof GloveboxIndexRoute
   '/vehicle/': typeof VehicleIndexRoute
   '/glovebox/$docId/edit': typeof GloveboxDocIdEditRoute
   '/vehicle/$vehicleId/edit': typeof VehicleVehicleIdEditRoute
@@ -189,12 +175,10 @@ export interface FileRoutesByTo {
   '/add/expense': typeof AddExpenseRoute
   '/add/fuel': typeof AddFuelRoute
   '/add/odometer': typeof AddOdometerRoute
-  '/add/service': typeof AddServiceRoute
   '/glovebox/$docId': typeof GloveboxDocIdRouteWithChildren
   '/glovebox/new': typeof GloveboxNewRoute
   '/vehicle/$vehicleId': typeof VehicleVehicleIdRoute
   '/vehicle/new': typeof VehicleNewRoute
-  '/glovebox': typeof GloveboxIndexRoute
   '/vehicle': typeof VehicleIndexRoute
   '/glovebox/$docId/edit': typeof GloveboxDocIdEditRoute
   '/vehicle/$vehicleId/edit': typeof VehicleVehicleIdEditRoute
@@ -215,12 +199,10 @@ export interface FileRoutesById {
   '/add/expense': typeof AddExpenseRoute
   '/add/fuel': typeof AddFuelRoute
   '/add/odometer': typeof AddOdometerRoute
-  '/add/service': typeof AddServiceRoute
   '/glovebox/$docId': typeof GloveboxDocIdRouteWithChildren
   '/glovebox/new': typeof GloveboxNewRoute
   '/vehicle/$vehicleId': typeof VehicleVehicleIdRoute
   '/vehicle/new': typeof VehicleNewRoute
-  '/glovebox/': typeof GloveboxIndexRoute
   '/vehicle/': typeof VehicleIndexRoute
   '/glovebox/$docId/edit': typeof GloveboxDocIdEditRoute
   '/vehicle_/$vehicleId/edit': typeof VehicleVehicleIdEditRoute
@@ -242,12 +224,10 @@ export interface FileRouteTypes {
     | '/add/expense'
     | '/add/fuel'
     | '/add/odometer'
-    | '/add/service'
     | '/glovebox/$docId'
     | '/glovebox/new'
     | '/vehicle/$vehicleId'
     | '/vehicle/new'
-    | '/glovebox/'
     | '/vehicle/'
     | '/glovebox/$docId/edit'
     | '/vehicle/$vehicleId/edit'
@@ -267,12 +247,10 @@ export interface FileRouteTypes {
     | '/add/expense'
     | '/add/fuel'
     | '/add/odometer'
-    | '/add/service'
     | '/glovebox/$docId'
     | '/glovebox/new'
     | '/vehicle/$vehicleId'
     | '/vehicle/new'
-    | '/glovebox'
     | '/vehicle'
     | '/glovebox/$docId/edit'
     | '/vehicle/$vehicleId/edit'
@@ -292,12 +270,10 @@ export interface FileRouteTypes {
     | '/add/expense'
     | '/add/fuel'
     | '/add/odometer'
-    | '/add/service'
     | '/glovebox/$docId'
     | '/glovebox/new'
     | '/vehicle/$vehicleId'
     | '/vehicle/new'
-    | '/glovebox/'
     | '/vehicle/'
     | '/glovebox/$docId/edit'
     | '/vehicle_/$vehicleId/edit'
@@ -318,12 +294,10 @@ export interface RootRouteChildren {
   AddExpenseRoute: typeof AddExpenseRoute
   AddFuelRoute: typeof AddFuelRoute
   AddOdometerRoute: typeof AddOdometerRoute
-  AddServiceRoute: typeof AddServiceRoute
   GloveboxDocIdRoute: typeof GloveboxDocIdRouteWithChildren
   GloveboxNewRoute: typeof GloveboxNewRoute
   VehicleVehicleIdRoute: typeof VehicleVehicleIdRoute
   VehicleNewRoute: typeof VehicleNewRoute
-  GloveboxIndexRoute: typeof GloveboxIndexRoute
   VehicleIndexRoute: typeof VehicleIndexRoute
   VehicleVehicleIdEditRoute: typeof VehicleVehicleIdEditRoute
 }
@@ -428,20 +402,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AddOdometerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/add/service': {
-      id: '/add/service'
-      path: '/add/service'
-      fullPath: '/add/service'
-      preLoaderRoute: typeof AddServiceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/glovebox/': {
-      id: '/glovebox/'
-      path: '/glovebox'
-      fullPath: '/glovebox/'
-      preLoaderRoute: typeof GloveboxIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/glovebox/$docId': {
       id: '/glovebox/$docId'
       path: '/glovebox/$docId'
@@ -521,12 +481,10 @@ const rootRouteChildren: RootRouteChildren = {
   AddExpenseRoute: AddExpenseRoute,
   AddFuelRoute: AddFuelRoute,
   AddOdometerRoute: AddOdometerRoute,
-  AddServiceRoute: AddServiceRoute,
   GloveboxDocIdRoute: GloveboxDocIdRouteWithChildren,
   GloveboxNewRoute: GloveboxNewRoute,
   VehicleVehicleIdRoute: VehicleVehicleIdRoute,
   VehicleNewRoute: VehicleNewRoute,
-  GloveboxIndexRoute: GloveboxIndexRoute,
   VehicleIndexRoute: VehicleIndexRoute,
   VehicleVehicleIdEditRoute: VehicleVehicleIdEditRoute,
 }

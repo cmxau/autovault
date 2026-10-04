@@ -46,7 +46,8 @@ function MaintenancePage() {
     );
   }
 
-  const items = computeMaintenanceItems(vehicle, docs, system);
+  // "Next service" is already shown prominently in the hero card above.
+  const items = computeMaintenanceItems(vehicle, docs, system).filter((i) => i.id !== "service");
   const service = computeServiceStatus(vehicle, system);
 
   const serviceStart = vehicle.nextServiceKm - 10000;
@@ -86,9 +87,28 @@ function MaintenancePage() {
       <section className="mt-8">
         <SectionHeader title="Items" />
         <RowGroup>
-          {items.map((item) => (
-            <Row key={item.id} title={item.label} detail={item.detail} status={item.status} />
-          ))}
+          {items.map((item) =>
+            item.id.startsWith("compliance-") ? (
+              <Row
+                key={item.id}
+                title={item.label}
+                detail={item.detail}
+                status={item.status}
+                to="/glovebox/new"
+              />
+            ) : docs.some((d) => d.id === item.id) ? (
+              <Row
+                key={item.id}
+                title={item.label}
+                detail={item.detail}
+                status={item.status}
+                to="/glovebox/$docId"
+                params={{ docId: item.id }}
+              />
+            ) : (
+              <Row key={item.id} title={item.label} detail={item.detail} status={item.status} />
+            ),
+          )}
         </RowGroup>
       </section>
 
@@ -97,7 +117,9 @@ function MaintenancePage() {
       <VehicleNotesSection vehicle={vehicle} />
 
       <div className="mt-8">
-        <SecondaryButton onClick={() => void navigate({ to: "/add/service" })}>
+        <SecondaryButton
+          onClick={() => void navigate({ to: "/add/expense", search: { category: "Service" } })}
+        >
           Add Service Record
         </SecondaryButton>
       </div>

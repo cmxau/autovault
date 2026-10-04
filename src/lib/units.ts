@@ -61,6 +61,15 @@ export function fuelUnitFor(fuelType: string): FuelUnit {
   return "litres";
 }
 
+/**
+ * A bi-fuel vehicle mixes litres and kg fills, which can't be averaged, so
+ * summary screens (not the fuel-source toggle on Insights/Add Fuel) default
+ * to the petrol side.
+ */
+export function primaryFuelUnit(fuelType: string): FuelUnit {
+  return fuelType === "Petrol + CNG" ? "litres" : fuelUnitFor(fuelType);
+}
+
 export function fuelUnitLabel(unit: FuelUnit, system: DistanceSystem) {
   return unit === "kg" ? "kg" : unit === "kwh" ? "kWh" : volumeUnitLabel(system);
 }

@@ -56,6 +56,8 @@ export type Doc = {
   expiry?: string;
   daysLeft?: number;
   hasFile: boolean;
+  /** Type-specific extras (e.g. insurance cover, warranty coverage), keyed by field. */
+  details?: Record<string, string>;
 };
 
 export type VehicleNote = {
