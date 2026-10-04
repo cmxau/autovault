@@ -13,6 +13,7 @@ A private, local-first home for everything about your vehicles: mileage, service
 - **Search**: find any vehicle, entry, document, or note instantly.
 - **Backup & restore**: export your whole garage to a file (optionally passphrase-encrypted), and bring it back later, on this device or another.
 - **Units & currency**: Metric or Imperial, and your preferred currency symbol.
+- **Appearance**: light, dark or system theme, with a choice of accent colours (or your own).
 - **Installable**: add it to your phone or desktop like a native app; it works offline.
 
 ## Your data, your device
