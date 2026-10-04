@@ -12,18 +12,10 @@ export type Vehicle = {
   registration: string;
   odometer: number;
   avgMileage: number;
-  bestMileage: number;
-  worstMileage: number;
-  lastFillMileage: number;
   image: string;
   tint: string;
-  health: number;
   nextServiceKm: number;
   nextServiceDate: string;
-  monthKm: number;
-  monthFuelCost: number;
-  monthTotalCost: number;
-  runningCost: number;
 };
 
 export type Status = "ok" | "warn" | "urgent" | "unknown";
@@ -77,7 +69,7 @@ export type MaintenanceItem = {
   detail: string;
 };
 
-export type ChecklistKind =
+type ChecklistKind =
   | "engine_oil"
   | "tyres"
   | "tyre_pressure"
@@ -117,11 +109,6 @@ export type UpcomingItem = {
   label: string;
   detail: string;
   status: Status;
-};
-
-export type ExpenseCategory = {
-  label: string;
-  amount: number;
 };
 
 export type MileagePoint = {

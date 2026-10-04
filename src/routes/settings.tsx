@@ -427,9 +427,9 @@ function SettingsPage() {
               3. No Professional Advice
             </h3>
             <p>
-              Mileage, service due dates, health scores, and cost figures are calculated from the
-              records you enter. They are estimates for personal reference only and are not a
-              substitute for manufacturer guidance or a qualified mechanic's inspection.
+              Mileage, service due dates, and cost figures are calculated from the records you
+              enter. They are estimates for personal reference only and are not a substitute for
+              manufacturer guidance or a qualified mechanic's inspection.
             </p>
           </div>
 

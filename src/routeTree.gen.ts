@@ -10,10 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as R403RouteImport } from './routes/403'
-import { Route as R405RouteImport } from './routes/405'
 import { Route as InsightsRouteImport } from './routes/insights'
-import { Route as MaintenanceRouteImport } from './routes/maintenance'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RemindersRouteImport } from './routes/reminders'
 import { Route as SearchRouteImport } from './routes/search'
@@ -36,24 +33,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const R403Route = R403RouteImport.update({
-  id: '/403',
-  path: '/403',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const R405Route = R405RouteImport.update({
-  id: '/405',
-  path: '/405',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const InsightsRoute = InsightsRouteImport.update({
   id: '/insights',
   path: '/insights',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MaintenanceRoute = MaintenanceRouteImport.update({
-  id: '/maintenance',
-  path: '/maintenance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -139,10 +121,7 @@ const VehicleVehicleIdEditRoute = VehicleVehicleIdEditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/403': typeof R403Route
-  '/405': typeof R405Route
   '/insights': typeof InsightsRoute
-  '/maintenance': typeof MaintenanceRoute
   '/privacy': typeof PrivacyRoute
   '/reminders': typeof RemindersRoute
   '/search': typeof SearchRoute
@@ -162,10 +141,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/403': typeof R403Route
-  '/405': typeof R405Route
   '/insights': typeof InsightsRoute
-  '/maintenance': typeof MaintenanceRoute
   '/privacy': typeof PrivacyRoute
   '/reminders': typeof RemindersRoute
   '/search': typeof SearchRoute
@@ -186,10 +162,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/403': typeof R403Route
-  '/405': typeof R405Route
   '/insights': typeof InsightsRoute
-  '/maintenance': typeof MaintenanceRoute
   '/privacy': typeof PrivacyRoute
   '/reminders': typeof RemindersRoute
   '/search': typeof SearchRoute
@@ -211,10 +184,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/403'
-    | '/405'
     | '/insights'
-    | '/maintenance'
     | '/privacy'
     | '/reminders'
     | '/search'
@@ -234,10 +204,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/403'
-    | '/405'
     | '/insights'
-    | '/maintenance'
     | '/privacy'
     | '/reminders'
     | '/search'
@@ -257,10 +224,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/403'
-    | '/405'
     | '/insights'
-    | '/maintenance'
     | '/privacy'
     | '/reminders'
     | '/search'
@@ -281,10 +245,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  R403Route: typeof R403Route
-  R405Route: typeof R405Route
   InsightsRoute: typeof InsightsRoute
-  MaintenanceRoute: typeof MaintenanceRoute
   PrivacyRoute: typeof PrivacyRoute
   RemindersRoute: typeof RemindersRoute
   SearchRoute: typeof SearchRoute
@@ -311,32 +272,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/403': {
-      id: '/403'
-      path: '/403'
-      fullPath: '/403'
-      preLoaderRoute: typeof R403RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/405': {
-      id: '/405'
-      path: '/405'
-      fullPath: '/405'
-      preLoaderRoute: typeof R405RouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/insights': {
       id: '/insights'
       path: '/insights'
       fullPath: '/insights'
       preLoaderRoute: typeof InsightsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/maintenance': {
-      id: '/maintenance'
-      path: '/maintenance'
-      fullPath: '/maintenance'
-      preLoaderRoute: typeof MaintenanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -468,10 +408,7 @@ const GloveboxDocIdRouteWithChildren = GloveboxDocIdRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  R403Route: R403Route,
-  R405Route: R405Route,
   InsightsRoute: InsightsRoute,
-  MaintenanceRoute: MaintenanceRoute,
   PrivacyRoute: PrivacyRoute,
   RemindersRoute: RemindersRoute,
   SearchRoute: SearchRoute,

@@ -12,11 +12,11 @@ export function displayToKm(value: number, system: DistanceSystem) {
   return system === "imperial" ? value * KM_PER_MILE : value;
 }
 
-export function litresToDisplay(litres: number, system: DistanceSystem) {
+function litresToDisplay(litres: number, system: DistanceSystem) {
   return system === "imperial" ? litres / LITRES_PER_GALLON : litres;
 }
 
-export function displayToLitres(value: number, system: DistanceSystem) {
+function displayToLitres(value: number, system: DistanceSystem) {
   return system === "imperial" ? value * LITRES_PER_GALLON : value;
 }
 
@@ -24,11 +24,11 @@ export function distanceUnitLabel(system: DistanceSystem) {
   return system === "imperial" ? "mi" : "km";
 }
 
-export function volumeUnitLabel(system: DistanceSystem) {
+function volumeUnitLabel(system: DistanceSystem) {
   return system === "imperial" ? "gal" : "L";
 }
 
-export function mileageUnitLabel(system: DistanceSystem) {
+function mileageUnitLabel(system: DistanceSystem) {
   return system === "imperial" ? "mi/gal" : "km/L";
 }
 
@@ -37,12 +37,7 @@ export function formatDistance(km: number, system: DistanceSystem) {
   return `${Math.round(v).toLocaleString("en-IN")} ${distanceUnitLabel(system)}`;
 }
 
-export function formatVolume(litres: number, system: DistanceSystem) {
-  const v = litresToDisplay(litres, system);
-  return `${v.toFixed(2).replace(/\.00$/, "")} ${volumeUnitLabel(system)}`;
-}
-
-export function formatMileage(kmPerLitre: number, system: DistanceSystem) {
+function formatMileage(kmPerLitre: number, system: DistanceSystem) {
   const v = system === "imperial" ? kmPerLitre * (LITRES_PER_GALLON / KM_PER_MILE) : kmPerLitre;
   return `${v.toFixed(1)} ${mileageUnitLabel(system)}`;
 }
@@ -115,7 +110,7 @@ const FIXED_INR_RATES: Record<Currency, number> = {
   GBP: 1 / 105,
 };
 
-export function convertFromInr(amountInr: number, currency: Currency) {
+function convertFromInr(amountInr: number, currency: Currency) {
   return amountInr * FIXED_INR_RATES[currency];
 }
 

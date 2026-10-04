@@ -66,34 +66,3 @@ export function SecondaryButton({
     </motion.button>
   );
 }
-
-export function IconButton({
-  icon: Icon,
-  label,
-  onClick,
-  className,
-  tone = "glass",
-}: {
-  icon: ComponentType<{ className?: string; strokeWidth?: number }>;
-  label: string;
-  onClick?: () => void;
-  className?: string;
-  tone?: "glass" | "plain";
-}) {
-  const press = usePress(0.92);
-  return (
-    <motion.button
-      {...press}
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className={cn(
-        "focus-ring grid size-11 place-items-center rounded-full text-foreground",
-        tone === "glass" ? "glass" : "hover:bg-accent",
-        className,
-      )}
-    >
-      <Icon className="size-[19px]" strokeWidth={1.75} />
-    </motion.button>
-  );
-}

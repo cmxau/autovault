@@ -308,18 +308,10 @@ function AddVehiclePage() {
               registration: form.registration,
               odometer,
               avgMileage: 0,
-              bestMileage: 0,
-              worstMileage: 0,
-              lastFillMileage: 0,
               image: photo ?? vehiclePlaceholderImage(tint),
               tint,
-              health: 100,
               nextServiceKm,
               nextServiceDate,
-              monthKm: 0,
-              monthFuelCost: 0,
-              monthTotalCost: 0,
-              runningCost: 0,
             };
 
             garageStore.addVehicle(vehicle);
