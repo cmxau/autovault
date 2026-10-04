@@ -115,13 +115,11 @@ function AddExpensePage() {
   const config = expenseCategoryConfig[category];
   const [serviceForm, setServiceForm] = useState({
     odometer:
-      editEntry?.odometer !== undefined
-        ? String(kmToDisplay(editEntry.odometer, system))
-        : String(vehicle?.odometer ?? 0),
+      editEntry?.odometer !== undefined ? String(kmToDisplay(editEntry.odometer, system)) : "",
     centre: noteCentre ?? "",
     type: editingService ? (editEntry?.title ?? "") : "Periodic service",
     nextDate: "",
-    nextOdometer: String(vehicle?.nextServiceKm ?? 0),
+    nextOdometer: "",
   });
   const setService = (key: keyof typeof serviceForm) => (value: string) =>
     setServiceForm((prev) => ({ ...prev, [key]: value }));
@@ -142,9 +140,15 @@ function AddExpensePage() {
     );
   }
 
+  // Untouched odometer fields fall back to the vehicle's own values. The vehicle can be
+  // missing on the first render of a direct page load, so this can't live in useState.
+  const toDisplay = (km: number) => String(Math.round(kmToDisplay(km, system)));
+  const odometerValue = serviceForm.odometer || toDisplay(vehicle.odometer);
+  const nextOdometerValue = serviceForm.nextOdometer || toDisplay(vehicle.nextServiceKm);
+
   const saveService = () => {
-    const odometerKm = Math.round(displayToKm(Number(serviceForm.odometer), system));
-    const nextOdometerKm = Math.round(displayToKm(Number(serviceForm.nextOdometer), system));
+    const odometerKm = Math.round(displayToKm(Number(odometerValue), system));
+    const nextOdometerKm = Math.round(displayToKm(Number(nextOdometerValue), system));
     const pendingItem = cleanWorkName(customDraft);
     const performedFinal = [
       ...performed,
@@ -290,7 +294,7 @@ function AddExpensePage() {
                 hint={`Last recorded ${formatDistance(vehicle.odometer, system)}`}
               >
                 <TextInput
-                  value={serviceForm.odometer}
+                  value={odometerValue}
                   onChange={setService("odometer")}
                   numeric
                   suffix={distanceLabel}
@@ -390,7 +394,7 @@ function AddExpensePage() {
                   </FormField>
                   <FormField label="Due at" hint="Whichever comes first">
                     <TextInput
-                      value={serviceForm.nextOdometer}
+                      value={nextOdometerValue}
                       onChange={setService("nextOdometer")}
                       numeric
                       suffix={distanceLabel}

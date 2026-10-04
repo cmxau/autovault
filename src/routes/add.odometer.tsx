@@ -7,7 +7,7 @@ import { PrimaryButton } from "@/components/autovault/buttons";
 import { useGarage } from "@/hooks/use-garage";
 import { NoVehicleEmptyState } from "@/components/autovault/no-vehicle";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
-import { displayToKm, distanceUnitLabel, formatDistance } from "@/lib/units";
+import { displayToKm, distanceUnitLabel, formatDistance, kmToDisplay } from "@/lib/units";
 import { todayISO } from "@/lib/format";
 import { garageStore } from "@/lib/store";
 
@@ -32,7 +32,10 @@ function UpdateOdometerPage() {
   const distanceLabel = distanceUnitLabel(system);
   const navigate = useNavigate();
   const [date, setDate] = useState(todayISO());
-  const [reading, setReading] = useState(String(vehicle?.odometer ?? 0));
+  // "" = untouched: fall back to the vehicle's own reading, which can be missing on the
+  // first render of a direct page load, so it can't be the useState default.
+  const [edited, setReading] = useState("");
+  const reading = edited || String(Math.round(kmToDisplay(vehicle?.odometer ?? 0, system)));
 
   const readingKm = displayToKm(Number(reading), system);
   const delta = readingKm - (vehicle?.odometer ?? 0);
