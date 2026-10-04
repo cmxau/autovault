@@ -13,7 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/navigation/app-shell";
 import { ErrorPage } from "@/components/autovault/error-page";
-import { GarageProvider } from "@/hooks/use-garage";
+import { GarageProvider } from "@/hooks/garage-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { applyStoredTheme } from "@/hooks/use-theme";
 import { useAutoBackup } from "@/hooks/use-auto-backup";
