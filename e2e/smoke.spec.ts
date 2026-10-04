@@ -90,6 +90,49 @@ test("add a fuel entry and see it in the timeline", async ({ page }) => {
   await expect(page.getByText("Fuel").first()).toBeVisible();
 });
 
+test("add an expense with category fields and see it in insights", async ({ page }) => {
+  await completeOnboarding(page);
+  await addVehicle(page);
+
+  await page.goto("/add/expense");
+  await page.getByRole("radio", { name: "Tolls" }).click();
+  await page.getByLabel("Plaza / route").fill("Mumbai-Pune Expressway");
+  await page.getByLabel("Amount").fill("250");
+  await page.getByRole("button", { name: "Save Expense" }).click();
+  await expect(page).toHaveURL(/\/insights/);
+
+  await page.goto("/timeline");
+  await expect(page.getByText("Tolls").first()).toBeVisible();
+});
+
+test("add a service record from the expense form with a custom work item", async ({ page }) => {
+  await completeOnboarding(page);
+  await addVehicle(page);
+
+  await page.goto("/add/expense?category=Service");
+  await page.getByLabel("Total cost").fill("3200");
+  await page.getByRole("button", { name: "Add your own" }).click();
+  await page.getByLabel("New item").fill("Clutch cable replacement");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByText("Clutch cable replacement")).toBeVisible();
+  await page.getByRole("button", { name: "Save Service Record" }).click();
+  await expect(page).toHaveURL(/\/timeline/);
+  await expect(page.getByText("Periodic service")).toBeVisible();
+});
+
+test("add an insurance document with type-specific fields", async ({ page }) => {
+  await completeOnboarding(page);
+  await addVehicle(page);
+
+  await page.goto("/glovebox/new");
+  await page.getByRole("radio", { name: "Insurance" }).click();
+  await page.getByLabel("Insurer").fill("Test Insurer");
+  await page.getByLabel("Start date").fill("2026-01-01");
+  await page.getByRole("button", { name: "Save Document" }).click();
+  await expect(page).toHaveURL(/tab=glovebox/);
+  await expect(page.getByText("Test Insurer")).toBeVisible();
+});
+
 test("global search finds a vehicle by nickname", async ({ page }) => {
   await completeOnboarding(page);
   await addVehicle(page, { nickname: "Searchable Scooter" });
