@@ -6,7 +6,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [addOpen, setAddOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen w-full bg-background sm:bg-muted/40">
+    <div className="relative min-h-dvh w-full bg-background sm:bg-muted/40">
       {/* ambient tint: single, restrained */}
       <div
         aria-hidden
@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }}
       />
       {/* Same layout at every width: a single centered mobile-width column. */}
-      <div className="relative mx-auto min-h-screen w-full max-w-[520px] bg-background sm:shadow-[0_0_0_1px_var(--border),0_24px_60px_-24px_rgb(0_0_0/0.25)]">
+      <div className="relative mx-auto min-h-dvh w-full max-w-[520px] bg-background sm:shadow-[0_0_0_1px_var(--border),0_24px_60px_-24px_rgb(0_0_0/0.25)]">
         <BottomNavigation onAdd={() => setAddOpen(true)} />
         <main className="relative w-full px-5 pb-[124px] pt-8">{children}</main>
       </div>

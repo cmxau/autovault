@@ -143,6 +143,10 @@ An installed PWA (especially on iOS) has no hard reload, so **Settings â†’ App â
 - `public/sw.js` must never cache `/version.json`; it returns early for that path. Bump `CACHE_NAME` there if you ever need to force every installed copy to drop its caches.
 - The service worker file itself only changes when its own bytes do, so the browser's built-in SW update check can't see an app-only deploy. That's why the build id exists.
 
+## Installed-app mode
+
+When the app runs standalone (home-screen PWA), `src/hooks/use-standalone-lock.ts` adds `html.standalone`, tightens the viewport meta to `user-scalable=no`, and blocks iOS pinch gestures; `styles.css` then pins the page to the device width and disables overscroll and sideways panning. Normal browser tabs are untouched, so zoom stays available there for accessibility. The app shell uses `min-h-dvh` so it matches the visible screen height on mobile.
+
 ## Currency
 
 No live exchange rates; the app makes no network calls by design. `src/lib/units.ts` stores fixed conversion rates from INR (the canonical storage currency) and converts for display only; money is always entered and persisted in INR regardless of display currency.

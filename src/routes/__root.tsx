@@ -18,6 +18,7 @@ import { GarageProvider } from "@/hooks/garage-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { applyStoredTheme } from "@/hooks/use-theme";
 import { useAutoBackup } from "@/hooks/use-auto-backup";
+import { useStandaloneLock } from "@/hooks/use-standalone-lock";
 import { useReminderNotifications } from "@/hooks/use-reminder-notifications";
 
 function NotFoundComponent() {
@@ -142,6 +143,7 @@ function RootComponent() {
     }
   }, []);
 
+  useStandaloneLock();
   useAutoBackup();
   useReminderNotifications();
 

@@ -186,6 +186,24 @@ test("installed PWA: check for updates reports when the server can't be reached"
   await expect(page.getByText("Couldn't check for updates")).toBeVisible();
 });
 
+test("installed PWA locks zoom; a normal browser tab keeps it", async ({ page, browser }) => {
+  await runAsInstalledPwa(page);
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveClass(/standalone/);
+  await expect(page.locator('meta[name="viewport"]')).toHaveAttribute(
+    "content",
+    /user-scalable=no/,
+  );
+
+  const tab = await (await browser.newContext()).newPage();
+  await tab.goto("/");
+  await expect(tab.locator("html")).not.toHaveClass(/standalone/);
+  await expect(tab.locator('meta[name="viewport"]')).not.toHaveAttribute(
+    "content",
+    /user-scalable=no/,
+  );
+});
+
 test("global search finds a vehicle by nickname", async ({ page }) => {
   await completeOnboarding(page);
   await addVehicle(page, { nickname: "Searchable Scooter" });

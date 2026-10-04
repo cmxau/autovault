@@ -223,6 +223,17 @@
   ::selection {
     background: color-mix(in oklab, var(--primary) 24%, transparent);
   }
+
+  /* Installed app: fixed to the device screen, no zoom, no rubber-banding. */
+  html.standalone,
+  html.standalone body {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+    touch-action: pan-x pan-y;
+    -webkit-text-size-adjust: 100%;
+  }
 }
 
 /* --- Materials ------------------------------------------------------- */

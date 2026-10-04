@@ -5,6 +5,14 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+/** True when running as an installed app (home-screen PWA). Client-only: call after mount. */
+export function isStandalone() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (navigator as { standalone?: boolean }).standalone === true
+  );
+}
+
 export function usePwaInstall() {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
@@ -23,10 +31,7 @@ export function usePwaInstall() {
       setInstallEvent(null);
     };
 
-    setInstalled(
-      window.matchMedia("(display-mode: standalone)").matches ||
-        (navigator as { standalone?: boolean }).standalone === true,
-    );
+    setInstalled(isStandalone());
     setIsIOS(/iphone|ipad|ipod/i.test(navigator.userAgent));
 
     window.addEventListener("beforeinstallprompt", onPrompt);
