@@ -133,13 +133,23 @@ Adding an expense or a document is data-driven, so a new category or type is a c
 
 Real OS notifications, not just in-app toasts: `src/hooks/use-reminder-notifications.ts` runs once per app load, checks service/document/checklist due-status, and calls `registration.showNotification()` on the service worker (`public/sw.js`) if the user has granted permission via the Settings toggle. A cooldown log in `localStorage` prevents re-notifying for the same item within a few days.
 
+## Updates (installed PWA)
+
+An installed PWA (especially on iOS) has no hard reload, so **Settings → App → Check for updates** does it. It only appears when the app is running standalone.
+
+- `vite.config.ts` stamps each build with an id (`VERCEL_GIT_COMMIT_SHA` on Vercel, else the git short SHA, else the build time). It is baked in as `__BUILD_ID__` and published as `/version.json`.
+- `src/hooks/use-app-update.ts` fetches `/version.json` (bypassing every cache) and compares it with `__BUILD_ID__`. Same id: "No updates yet". Different: it clears the service worker's caches, asks it to update, and reloads. Unreachable: it says so.
+- **Data is untouched.** Only the service worker and its caches are cleared; everything lives in `localStorage`. Navigations are network-first, so the reload picks up the new HTML and its new hashed assets.
+- `public/sw.js` must never cache `/version.json`; it returns early for that path. Bump `CACHE_NAME` there if you ever need to force every installed copy to drop its caches.
+- The service worker file itself only changes when its own bytes do, so the browser's built-in SW update check can't see an app-only deploy. That's why the build id exists.
+
 ## Currency
 
 No live exchange rates; the app makes no network calls by design. `src/lib/units.ts` stores fixed conversion rates from INR (the canonical storage currency) and converts for display only; money is always entered and persisted in INR regardless of display currency.
 
 ## Testing
 
-`e2e/smoke.spec.ts` covers onboarding → add vehicle, edit/delete, adding a fuel entry, an expense with category fields, a service record with a custom work item, an insurance document, search, a settings toggle round-trip, and backup export. The first run needs a browser: `npx playwright install chromium`. `playwright.config.ts` builds and serves the app before running. Run with `npm run test:e2e`.
+`e2e/smoke.spec.ts` covers onboarding → add vehicle, edit/delete, adding a fuel entry, an expense with category fields, a service record with a custom work item, an insurance document, search, a settings toggle round-trip, the installed-PWA update check (up to date, new build with data kept, offline), and backup export. The first run needs a browser: `npx playwright install chromium`. `playwright.config.ts` builds and serves the app before running. Run with `npm run test:e2e`.
 
 ## Gotchas
 

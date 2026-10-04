@@ -133,6 +133,59 @@ test("add an insurance document with type-specific fields", async ({ page }) => 
   await expect(page.getByText("Test Insurer")).toBeVisible();
 });
 
+// The update row only appears when the app runs as an installed PWA.
+async function runAsInstalledPwa(page: Page) {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "standalone", { value: true });
+  });
+}
+
+test("installed PWA: check for updates says no updates yet when on the latest build", async ({
+  page,
+}) => {
+  await runAsInstalledPwa(page);
+  await completeOnboarding(page);
+  await addVehicle(page);
+
+  await page.goto("/settings");
+  await page.getByText("Check for updates").click();
+  await expect(page.getByText("No updates yet")).toBeVisible();
+  await expect(page.getByText("You're on the latest version").first()).toBeVisible();
+});
+
+test("installed PWA: check for updates reloads into a newer build and keeps data", async ({
+  page,
+}) => {
+  await runAsInstalledPwa(page);
+  await completeOnboarding(page);
+  await addVehicle(page);
+
+  // Pretend a newer deploy was published.
+  await page.route("**/version.json*", (route) =>
+    route.fulfill({ contentType: "application/json", body: JSON.stringify({ id: "newbuild" }) }),
+  );
+  await page.goto("/settings");
+  await page.getByText("Check for updates").click();
+  await expect(page.getByText("AutoVault updated")).toBeVisible();
+  await expect(page.getByText("Now on version newbuild.")).toBeVisible();
+
+  await page.goto("/");
+  await expect(page.getByText("Daily Driver")).toBeVisible();
+});
+
+test("installed PWA: check for updates reports when the server can't be reached", async ({
+  page,
+}) => {
+  await runAsInstalledPwa(page);
+  await completeOnboarding(page);
+  await addVehicle(page);
+
+  await page.route("**/version.json*", (route) => route.abort());
+  await page.goto("/settings");
+  await page.getByText("Check for updates").click();
+  await expect(page.getByText("Couldn't check for updates")).toBeVisible();
+});
+
 test("global search finds a vehicle by nickname", async ({ page }) => {
   await completeOnboarding(page);
   await addVehicle(page, { nickname: "Searchable Scooter" });

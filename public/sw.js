@@ -1,4 +1,4 @@
-const CACHE_NAME = "autovault-v1";
+const CACHE_NAME = "autovault-v2";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -40,7 +40,11 @@ self.addEventListener("notificationclick", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) return;
+  const url = new URL(request.url);
+  if (request.method !== "GET" || url.origin !== self.location.origin) return;
+
+  // The update check must always reach the network, never the cache.
+  if (url.pathname === "/version.json") return;
 
   if (request.mode === "navigate") {
     event.respondWith(

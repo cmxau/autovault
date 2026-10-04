@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Bell,
@@ -7,6 +7,7 @@ import {
   MonitorSmartphone,
   Check,
   Download,
+  RefreshCw,
   Bug,
   Lightbulb,
   Github,
@@ -25,6 +26,7 @@ import { useGarage } from "@/hooks/use-garage";
 import { useNotificationPrefs } from "@/hooks/use-notification-prefs";
 import { useUnitPrefs } from "@/hooks/use-unit-prefs";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
+import { currentBuild, useAppUpdate } from "@/hooks/use-app-update";
 import { setProfileName, useProfileName } from "@/hooks/use-profile";
 import type { Currency, DistanceSystem } from "@/lib/units";
 
@@ -67,6 +69,13 @@ function SettingsPage() {
   } = useNotificationPrefs();
   const { system, currency, setSystem, setCurrency } = useUnitPrefs();
   const { canPrompt, installed, isIOS, promptInstall } = usePwaInstall();
+  const { state: updateState, justUpdatedTo, checkForUpdate } = useAppUpdate();
+
+  useEffect(() => {
+    if (justUpdatedTo) {
+      toast.success("AutoVault updated", { description: `Now on version ${justUpdatedTo}.` });
+    }
+  }, [justUpdatedTo]);
   const profileName = useProfileName();
   const [termsOpen, setTermsOpen] = useState(false);
   const [unitsOpen, setUnitsOpen] = useState(false);
@@ -247,10 +256,37 @@ function SettingsPage() {
           </RowGroup>
         </section>
 
-        {!installed && (
-          <section>
-            <SectionHeader title="App" />
-            <RowGroup>
+        <section>
+          <SectionHeader title="App" />
+          <RowGroup>
+            {installed ? (
+              <Row
+                icon={RefreshCw}
+                title="Check for updates"
+                detail={
+                  updateState === "checking"
+                    ? "Checking…"
+                    : updateState === "current"
+                      ? "You're on the latest version"
+                      : updateState === "offline"
+                        ? "Couldn't reach the server"
+                        : `Version ${currentBuild}`
+                }
+                onClick={async () => {
+                  if (updateState === "checking") return;
+                  const result = await checkForUpdate();
+                  if (result === "current") {
+                    toast("No updates yet", { description: "You're on the latest version." });
+                  } else if (result === "offline") {
+                    toast.error("Couldn't check for updates", {
+                      description: "Check your connection and try again.",
+                    });
+                  } else {
+                    toast("Updating…", { description: "Your data stays on this device." });
+                  }
+                }}
+              />
+            ) : (
               <Row
                 icon={Download}
                 title="Install as App"
@@ -274,9 +310,9 @@ function SettingsPage() {
                   toast.error("Install isn't available in this browser");
                 }}
               />
-            </RowGroup>
-          </section>
-        )}
+            )}
+          </RowGroup>
+        </section>
 
         <section>
           <SectionHeader title="About" />
