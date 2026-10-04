@@ -20,7 +20,7 @@ function setState(next: string) {
   for (const listener of listeners) listener();
 }
 
-export const profileStore = {
+const profileStore = {
   getState: () => state,
   getServerState: () => "",
   subscribe(listener: () => void) {

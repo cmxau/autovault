@@ -1,7 +1,7 @@
 import type { FieldSpec } from "@/lib/form-fields";
 
 /** Extra form fields per expense category. Values are stored in the entry's note as "Label: value". */
-export type ExpenseCategoryConfig = {
+type ExpenseCategoryConfig = {
   amountLabel: string;
   amountPlaceholder: string;
   notesPlaceholder: string;

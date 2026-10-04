@@ -5,7 +5,7 @@ import { appIcons } from "@/lib/icons";
 import { spring, usePress } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-export const primaryDestinations = [
+const primaryDestinations = [
   { to: "/", label: "Garage", icon: appIcons.vehicle },
   { to: "/timeline", label: "Timeline", icon: appIcons.timeline },
   { to: "/insights", label: "Insights", icon: ChartNoAxesColumn },

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type Theme = "system" | "light" | "dark";
+type Theme = "system" | "light" | "dark";
 
 const KEY = "autovault-theme";
 const ACCENT_KEY = "autovault-accent";
@@ -13,7 +13,7 @@ export const accents = [
 
 export type Accent = (typeof accents)[number]["value"] | "custom";
 
-export const DEFAULT_CUSTOM = "#e11d48";
+const DEFAULT_CUSTOM = "#e11d48";
 const CUSTOM_KEY = "autovault-accent-custom";
 const CUSTOM_VARS = [
   "--primary",

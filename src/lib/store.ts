@@ -13,7 +13,7 @@ const KEYS = {
   checklist: "autovault-checklist",
 } as const;
 
-export type GarageState = {
+type GarageState = {
   vehicles: Vehicle[];
   timeline: TimelineEntry[];
   docs: Doc[];

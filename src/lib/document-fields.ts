@@ -2,7 +2,7 @@ import { daysUntil } from "@/lib/format";
 import type { FieldSpec } from "@/lib/form-fields";
 import type { Doc } from "@/types/autovault";
 
-export type DocTypeConfig = {
+type DocTypeConfig = {
   provider: { label: string; placeholder: string };
   number: { label: string; placeholder: string };
   issued: { label: string };
@@ -19,7 +19,7 @@ const generic: DocTypeConfig = {
   extras: [],
 };
 
-export const docTypeConfig: Record<string, DocTypeConfig> = {
+const docTypeConfig: Record<string, DocTypeConfig> = {
   Insurance: {
     provider: { label: "Insurer", placeholder: "ICICI Lombard" },
     number: { label: "Policy no.", placeholder: "3005/AB/928471/26" },
@@ -137,7 +137,7 @@ export function docFormFrom(doc: Doc): DocFormValue {
   };
 }
 
-export function finalCategory(value: DocFormValue) {
+function finalCategory(value: DocFormValue) {
   return value.category === "Other" && value.customCategory.trim()
     ? value.customCategory.trim()
     : value.category;

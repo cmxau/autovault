@@ -26,7 +26,7 @@ function setState(next: UnitPrefs) {
   for (const listener of listeners) listener();
 }
 
-export const unitPrefsStore = {
+const unitPrefsStore = {
   getState: () => state,
   getServerState: () => defaults,
   subscribe(listener: () => void) {

@@ -6,7 +6,7 @@ const KEY = "autovault-custom-reminders";
 export type Repeat =
   { kind: "yearly"; date: string } | { kind: "days"; date: string; every: number };
 
-export type CustomReminder = {
+type CustomReminder = {
   id: string;
   vehicleId: string;
   label: string;

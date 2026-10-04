@@ -33,7 +33,7 @@ function setState(next: BackupFrequency) {
   for (const listener of listeners) listener();
 }
 
-export const backupFrequencyStore = {
+const backupFrequencyStore = {
   getState: () => state,
   getServerState: () => "off" as BackupFrequency,
   subscribe(listener: () => void) {

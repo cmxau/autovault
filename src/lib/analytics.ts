@@ -60,7 +60,7 @@ export function computeMileage(timeline: TimelineEntry[], vehicleId: string, uni
   };
 }
 
-export function rangeWindow(range: Range, now: Date) {
+function rangeWindow(range: Range, now: Date) {
   const to = now;
   const from = new Date(now);
   if (range === "3m") from.setMonth(from.getMonth() - 3);
