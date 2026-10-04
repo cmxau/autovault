@@ -128,16 +128,23 @@ function InsightsPage() {
                   <Metric
                     value={formatEfficiency(mileageStats.best, mileageUnit, system)}
                     label="Best"
+                    className="pr-5"
                   />
                   <Metric
                     value={formatEfficiency(mileageStats.worst, mileageUnit, system)}
                     label="Worst"
+                    className="border-l border-hairline pl-5"
                   />
                   <Metric
                     value={formatEfficiency(mileageStats.lastFill, mileageUnit, system)}
                     label="Last fill"
+                    className="pr-5 sm:border-l sm:border-hairline sm:pl-5"
                   />
-                  <Metric value={String(trend.length)} label="Fill-ups tracked" />
+                  <Metric
+                    value={String(trend.length)}
+                    label="Fill-ups tracked"
+                    className="border-l border-hairline pl-5"
+                  />
                 </div>
               </section>
             </>
