@@ -14,42 +14,21 @@ import {
 } from "lucide-react";
 import { appIcons } from "@/lib/icons";
 import { FormField, FormGroup, TextInput } from "@/components/autovault/form";
+import { cleanWorkName, workGroups, workLabels } from "@/lib/service-work";
 import { cn } from "@/lib/utils";
 
-const groups: { title: string; items: { label: string; icon: LucideIcon }[] }[] = [
-  {
-    title: "Engine & fluids",
-    items: [
-      { label: "Engine oil", icon: appIcons.engineOil },
-      { label: "Oil filter", icon: Funnel },
-      { label: "Air filter", icon: appIcons.emissions },
-    ],
-  },
-  {
-    title: "Brakes & tyres",
-    items: [
-      { label: "Brake pads", icon: Disc3 },
-      { label: "Tyres", icon: CircleDashed },
-      { label: "Tyre puncture repair", icon: appIcons.repair },
-      { label: "Tyre air pressure top-up", icon: appIcons.tyrePressure },
-      { label: "Wheel alignment", icon: MoveHorizontal },
-    ],
-  },
-  {
-    title: "Electrical & drive",
-    items: [
-      { label: "Battery", icon: BatteryCharging },
-      { label: "Chain maintenance", icon: LinkIcon },
-    ],
-  },
-];
-
-export const workLabels = groups.flatMap((g) => g.items.map((i) => i.label));
-
-/** Commas separate items in the saved note, so they can't be part of a name. */
-export function cleanWorkName(raw: string) {
-  return raw.replace(/,/g, " ").replace(/\s+/g, " ").trim();
-}
+const workIcons: Record<string, LucideIcon> = {
+  "Engine oil": appIcons.engineOil,
+  "Oil filter": Funnel,
+  "Air filter": appIcons.emissions,
+  "Brake pads": Disc3,
+  Tyres: CircleDashed,
+  "Tyre puncture repair": appIcons.repair,
+  "Tyre air pressure top-up": appIcons.tyrePressure,
+  "Wheel alignment": MoveHorizontal,
+  Battery: BatteryCharging,
+  "Chain maintenance": LinkIcon,
+};
 
 function Tick({ on }: { on: boolean }) {
   return (
@@ -127,11 +106,11 @@ export function WorkPicker({
       </div>
 
       <div className="space-y-5">
-        {groups.map((group) => (
+        {workGroups.map((group) => (
           <div key={group.title}>
             <p className="mb-1.5 px-1 text-[12px] text-muted-foreground">{group.title}</p>
             <FormGroup>
-              {group.items.map(({ label, icon }) => {
+              {group.items.map((label) => {
                 const on = selected.includes(label);
                 return (
                   <button
@@ -145,7 +124,7 @@ export function WorkPicker({
                       on && "bg-primary/[0.06]",
                     )}
                   >
-                    <IconTile icon={icon} on={on} />
+                    <IconTile icon={workIcons[label] ?? Sparkles} on={on} />
                     <span className="min-w-0 flex-1">
                       <span className="block text-[15px] font-medium tracking-[-0.005em]">
                         {label}

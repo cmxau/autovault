@@ -3,8 +3,8 @@ import { motion } from "motion/react";
 import { ChevronRight, Lock } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import { usePress } from "@/lib/motion";
-import { cn } from "@/lib/utils";
-import { StatusDot, statusTone } from "./status-indicator";
+import { cn, statusTone } from "@/lib/utils";
+import { StatusDot } from "./status-indicator";
 import type { Status } from "@/types/autovault";
 
 export function Row({

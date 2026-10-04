@@ -24,7 +24,8 @@ import { composeExpenseNote, expenseCategoryConfig, parseExpenseNote } from "@/l
 import { appIcons } from "@/lib/icons";
 import { FieldRows } from "@/components/autovault/field-rows";
 import { TilePicker } from "@/components/autovault/tile-picker";
-import { WorkPicker, cleanWorkName, workLabels } from "@/components/autovault/work-picker";
+import { WorkPicker } from "@/components/autovault/work-picker";
+import { cleanWorkName, workLabels } from "@/lib/service-work";
 
 export const Route = createFileRoute("/add/expense")({
   validateSearch: (search: Record<string, unknown>): { edit?: string; category?: "Service" } => ({
